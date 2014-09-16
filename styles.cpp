@@ -49,8 +49,8 @@ void onEnd(void *userData, const XML_Char *name) {
 	}
 }
 
-void onData(void *userData, const XML_Char *s, int len) {
-	std::cout << std::string(s, len);
+void onData(void *, const XML_Char *s, int len) {
+	std::cout << std::string(s, static_cast<std::string::size_type>(len));
 }
 
 }

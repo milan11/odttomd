@@ -90,7 +90,7 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 
 			::writeEscapedString(outlineLevelStyle.prefix);
 			if (outlineLevelStyle.numFormat != '\0') {
-				::writeEscapedChar(static_cast<char>(outlineLevelStyle.numFormat + currentNumber - 1));
+				::writeEscapedChar(static_cast<char>(static_cast<uint32_t>(outlineLevelStyle.numFormat) + currentNumber - 1));
 			}
 			::writeEscapedString(outlineLevelStyle.suffix);
 
@@ -151,7 +151,7 @@ void onEnd(void *userData, const XML_Char *name) {
 	}
 }
 
-void onData(void *userData, const XML_Char *s, int len) {
+void onData(void *, const XML_Char *s, int len) {
 	for (const XML_Char *c = s; c < s + len; ++c) {
 		::writeEscapedChar(*c);
 	}
