@@ -171,7 +171,7 @@ void parseContent(zip_file *f, const Styles &styles) {
 	::XML_SetElementHandler(parser, &onStart, &onEnd);
 	::XML_SetCharacterDataHandler(parser, &onData);
 
-	static const size_t bufferSize = 1024 * 1024;
+	static const size_t bufferSize = 4 * 1024;
 	char buffer[bufferSize];
 
 	int64_t readResult = 0;
