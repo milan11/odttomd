@@ -114,6 +114,9 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 		context->currentUrl = ::attr(atts, "xlink:href");
 		std::cout << '[';
 	}
+	if (! ::strcmp(name, "text:line-break")) {
+		std::cout << '\n';
+	}
 }
 
 void onEnd(void *userData, const XML_Char *name) {
