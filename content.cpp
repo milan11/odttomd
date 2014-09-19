@@ -6,6 +6,7 @@
 #include <boost/scope_exit.hpp>
 #include <expat.h>
 #include "expat_utils.h"
+#include "numbering.h"
 #include "util.h"
 
 namespace {
@@ -66,7 +67,7 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 	Context *context = static_cast<Context *>(userData);
 
 	if (! ::strcmp(name, "text:h")) {
-		uint32_t level = ::strToInt(::attr(atts, "text:outline-level"), 0);
+		uint32_t level = ::strToInt(::attr(atts, "text:outline-level"), 0, true);
 
 		std::cout << std::string(std::max(level, static_cast<uint32_t>(1)), '#') << ' ';
 
@@ -90,7 +91,7 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 
 			::writeEscapedString(outlineLevelStyle.prefix);
 			if (outlineLevelStyle.numFormat != '\0') {
-				::writeEscapedChar(static_cast<char>(static_cast<uint32_t>(outlineLevelStyle.numFormat) + currentNumber - 1));
+				::writeEscapedString(numbering::createNumber(currentNumber, outlineLevelStyle.numFormat, outlineLevelStyle.numLetterSync));
 			}
 			::writeEscapedString(outlineLevelStyle.suffix);
 

@@ -14,6 +14,7 @@ class OutlineLevelStyle {
 
 public:
 	char numFormat = '\0';
+	bool numLetterSync = false;
 	std::string prefix;
 	std::string suffix;
 	uint32_t startValue = 1;

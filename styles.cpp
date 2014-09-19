@@ -30,13 +30,14 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 	}
 
 	if (! ::strcmp(name, "text:outline-level-style")) {
-		uint32_t level = ::strToInt(::attr(atts, "text:level"), 0);
+		uint32_t level = ::strToInt(::attr(atts, "text:level"), 0, true);
 		if (level != 0) {
 			OutlineLevelStyle &outlineLevelStyle = context->styles.outlineLevelStyles[level];
 			outlineLevelStyle.numFormat = ::attr(atts, "style:num-format")[0];
+			outlineLevelStyle.numLetterSync = ::strToBool(::attr(atts, "style:num-letter-sync"), false, true);
 			outlineLevelStyle.prefix = ::attr(atts, "style:num-prefix");
 			outlineLevelStyle.suffix = ::attr(atts, "style:num-suffix");
-			outlineLevelStyle.startValue = ::strToInt(::attr(atts, "text:start-value"), 1);
+			outlineLevelStyle.startValue = ::strToInt(::attr(atts, "text:start-value"), 1, true);
 		}
 	}
 }
