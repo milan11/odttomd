@@ -18,6 +18,7 @@ public:
 	std::string prefix;
 	std::string suffix;
 	uint32_t startValue = 1;
+	uint32_t displayLevels = 1;
 
 };
 

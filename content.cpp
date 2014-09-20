@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <iostream>
 #include <stack>
+#include <vector>
 #include <boost/scope_exit.hpp>
 #include <expat.h>
 #include "expat_utils.h"
@@ -24,7 +25,7 @@ public:
 	std::stack<const Style *> appliedStyles;
 	uint32_t listLevel = 0;
 	std::string currentUrl;
-	std::stack<uint32_t> currentOutlineNumbering;
+	std::vector<uint32_t> currentOutlineNumbering;
 
 };
 
@@ -73,23 +74,37 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 
 		if (level > 0) {
 			while (context->currentOutlineNumbering.size() > level) {
-				context->currentOutlineNumbering.pop();
+				context->currentOutlineNumbering.pop_back();
 			}
 			while (context->currentOutlineNumbering.size() < level - 1) {
 				uint32_t addedLevel = static_cast<uint32_t>(context->currentOutlineNumbering.size()) + 1;
-				context->currentOutlineNumbering.push(context->styles.getOutlineLevelStyle(addedLevel).startValue);
+				context->currentOutlineNumbering.push_back(context->styles.getOutlineLevelStyle(addedLevel).startValue);
 			}
 
 			const OutlineLevelStyle &outlineLevelStyle = context->styles.getOutlineLevelStyle(level);
 			if (context->currentOutlineNumbering.size() < level) {
-				context->currentOutlineNumbering.push(outlineLevelStyle.startValue);
+				context->currentOutlineNumbering.push_back(outlineLevelStyle.startValue);
 			} else {
-				++(context->currentOutlineNumbering.top());
+				++(context->currentOutlineNumbering.back());
 			}
 
-			uint32_t currentNumber = context->currentOutlineNumbering.top();
+			uint32_t currentNumber = context->currentOutlineNumbering.back();
 
 			::writeEscapedString(outlineLevelStyle.prefix);
+			uint32_t fromLevel = 1;
+			if (outlineLevelStyle.displayLevels <= level) {
+				fromLevel = 1 + level - outlineLevelStyle.displayLevels;
+			} else {
+				std::cerr << "More levels to display than the current level: " << outlineLevelStyle.displayLevels << " > " << level << std::endl;
+			}
+
+			for (uint32_t higherLevel = fromLevel; higherLevel < level; ++higherLevel) {
+				const OutlineLevelStyle &higherLevelStyle = context->styles.getOutlineLevelStyle(higherLevel);
+				if (! higherLevelStyle.numFormat.empty()) {
+					::writeEscapedString(numbering::createNumber(context->currentOutlineNumbering[higherLevel - 1], higherLevelStyle.numFormat, higherLevelStyle.numLetterSync));
+				}
+				::writeEscapedChar('.');
+			}
 			if (! outlineLevelStyle.numFormat.empty()) {
 				::writeEscapedString(numbering::createNumber(currentNumber, outlineLevelStyle.numFormat, outlineLevelStyle.numLetterSync));
 			}
