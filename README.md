@@ -15,9 +15,9 @@ __License:__ Public domain\. Use at your own risk\. There is absolutely no warra
 ##  Hints
 
 * to help OdtToMd understand the input file, prefer using styles for formatting – e\.g\. in LibreOffice:
- * Paramgraph Styles to create paragraphs and headings \(configure automatic heading numbering using Tools \-&gt; Outline Numbering\.\.\.\)
- * List Styles to create lists \(control levels using Demote One level and Promote One Level buttons on the Bullets and Numbering toolbar\)
- * Character Styles to control in\-line formatting \(e\.g\. create some style for the bold text\)
+  - Paramgraph Styles to create paragraphs and headings \(configure automatic heading numbering using Tools \-&gt; Outline Numbering\.\.\.\)
+  - List Styles to create lists \(control levels using Demote One level and Promote One Level buttons on the Bullets and Numbering toolbar\)
+  - Character Styles to control in\-line formatting \(e\.g\. create some style for the bold text\)
 
 ##  Build
 
@@ -26,24 +26,24 @@ __License:__ Public domain\. Use at your own risk\. There is absolutely no warra
 * __latest source code:__ [https://github\.com/milan11/odttomd](https://github\.com/milan11/odttomd)
 * __source code distribution:__ as CMake project
 * __build dependencies:__
- * boost
- * expat
- * libzip
+  - boost
+  - expat
+  - libzip
 * __build steps:__
- * git clone git@github\.com:milan11/odttomd\.git
- * cd odttomd
- * cmake
- * make
+  - git clone git@github\.com:milan11/odttomd\.git
+  - cd odttomd
+  - cmake
+  - make
 * __possible CMake arguments:__
- * __debug build:__ \-DCMAKE\_BUILD\_TYPE=Debug
- * __force using gcc compiler:__ \-DCMAKE\_CXX\_COMPILER=g\+\+
- * __force using clang compiler:__ \-DCMAKE\_CXX\_COMPILER=clang\+\+
+  - __debug build:__ \-DCMAKE\_BUILD\_TYPE=Debug
+  - __force using gcc compiler:__ \-DCMAKE\_CXX\_COMPILER=g\+\+
+  - __force using clang compiler:__ \-DCMAKE\_CXX\_COMPILER=clang\+\+
 
 ##  Supported Environment
 
 * __OS:__ Linux tested only \(but should be multiplatform\)
 * __needs these libraries \(is dynamically linked with\):__
- * expat, libzip
+  - expat, libzip
 
 ##  Usage
 
@@ -57,6 +57,6 @@ Unsupported data of the input odt\_file is reported as a warning to standard err
 
 * the __examples directory__ contains MD files and their corresponding original ODT files
 * these __repositories__ have their README\.MD files converted from README\.ODT files:
- * [https://github\.com/milan11/odttomd](https://github\.com/milan11/odttomd) \(this repository\)
- * [https://github\.com/milan11/repodbsync](https://github\.com/milan11/repodbsync)
+  - [https://github\.com/milan11/odttomd](https://github\.com/milan11/odttomd) \(this repository\)
+  - [https://github\.com/milan11/repodbsync](https://github\.com/milan11/repodbsync)
 

@@ -135,7 +135,7 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 		++(context->listLevel);
 	}
 	if (! ::strcmp(name, "text:list-item")) {
-		std::cout << std::string(context->listLevel - 1, ' ') << '*' << ' ';
+		std::cout << std::string((context->listLevel - 1) * 2, ' ') << ((context->listLevel % 2) ? '*' : '-') << ' ';
 	}
 	if (! ::strcmp(name, "text:span")) {
 		const Style &style = context->stylesContext.styles.getStyle(::attrString(atts, "text:style-name", ""));
