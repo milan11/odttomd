@@ -51,6 +51,7 @@ int main(int argc, char *argv[]) {
 
 		return 0;
 	} catch (int &result) {
+		std::cerr << "ERROR: " << result << std::endl;
 		return result;
 	}
 }
