@@ -4,9 +4,9 @@ Maecenas eu dolor euismod, iaculis nisl nec, cursus mauris\. Mauris scelerisque 
 
 Quisque sit amet est at sapien interdum tincidunt\. Suspendisse finibus, nibh nec vulputate ullamcorper, justo orci porta lectus, in dictum lacus nisi ac lorem\. Nunc mollis euismod nisi, malesuada interdum nisl porta vitae\. In molestie nulla vitae tortor facilisis, vitae vestibulum enim efficitur\. Nullam aliquam maximus sapien in placerat\. Cras tincidunt varius pretium\.
 
-Duis quis justo eget velit rhoncus condimentum:
-Curabitur sagittis, tortor placerat semper fermentum, ex nibh semper odio, nec tincidunt arcu ante vel metus\.
-Etiam vitae erat non nisl hendrerit placerat\.
-Cras et semper magna\.
+Duis quis justo eget velit rhoncus condimentum:  
+Curabitur sagittis, tortor placerat semper fermentum, ex nibh semper odio, nec tincidunt arcu ante vel metus\.  
+Etiam vitae erat non nisl hendrerit placerat\.  
+Cras et semper magna\.  
 Nulla facilisi\.
 

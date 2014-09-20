@@ -146,7 +146,7 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 		std::cout << '[';
 	}
 	if (! ::strcmp(name, "text:line-break")) {
-		std::cout << '\n';
+		std::cout << "  \n";
 	}
 }
 
