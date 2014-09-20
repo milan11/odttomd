@@ -1,6 +1,7 @@
 #pragma once
 
 #include <zip.h>
+#include <iostream>
 #include <map>
 
 class Style {
@@ -19,6 +20,7 @@ public:
 	std::string suffix;
 	uint32_t startValue = 1;
 	uint32_t displayLevels = 1;
+	std::string styleName;
 
 };
 
@@ -36,6 +38,7 @@ public:
 		if (it != styles.end()) {
 			return it->second;
 		} else {
+			std::cerr << "Style not found: " << name << std::endl;
 			return defaultStyle;
 		}
 	}
@@ -45,6 +48,7 @@ public:
 		if (it != outlineLevelStyles.end()) {
 			return it->second;
 		} else {
+			std::cerr << "Outline level style not found for level: " << outlineLevel << std::endl;
 			return defaultOutlineLevelStyle;
 		}
 	}

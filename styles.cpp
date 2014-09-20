@@ -39,6 +39,7 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 			outlineLevelStyle.suffix = ::attrString(atts, "style:num-suffix", "");
 			outlineLevelStyle.startValue = ::attrUint(atts, "text:start-value", 1);
 			outlineLevelStyle.displayLevels = ::attrUint(atts, "text:display-levels", 1);
+			outlineLevelStyle.styleName = ::attrString(atts, "text:style-name", "");
 		}
 	}
 }

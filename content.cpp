@@ -64,6 +64,12 @@ void writeEscapedString(const std::string &str) {
 	}
 }
 
+void writeStyleBeginEnd(const Style &style) {
+	if (style.bold) {
+		std::cout << "__";
+	}
+}
+
 void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 	Context *context = static_cast<Context *>(userData);
 
@@ -90,13 +96,18 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 
 			uint32_t currentNumber = context->currentOutlineNumbering.back();
 
-			::writeEscapedString(outlineLevelStyle.prefix);
 			uint32_t fromLevel = 1;
 			if (outlineLevelStyle.displayLevels <= level) {
 				fromLevel = 1 + level - outlineLevelStyle.displayLevels;
 			} else {
 				std::cerr << "More levels to display than the current level: " << outlineLevelStyle.displayLevels << " > " << level << std::endl;
 			}
+
+			if (! outlineLevelStyle.styleName.empty()) {
+				::writeStyleBeginEnd(context->styles.getStyle(outlineLevelStyle.styleName));
+			}
+
+			::writeEscapedString(outlineLevelStyle.prefix);
 
 			for (uint32_t higherLevel = fromLevel; higherLevel < level; ++higherLevel) {
 				const OutlineLevelStyle &higherLevelStyle = context->styles.getOutlineLevelStyle(higherLevel);
@@ -108,7 +119,12 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 			if (! outlineLevelStyle.numFormat.empty()) {
 				::writeEscapedString(numbering::createNumber(currentNumber, outlineLevelStyle.numFormat, outlineLevelStyle.numLetterSync));
 			}
+
 			::writeEscapedString(outlineLevelStyle.suffix);
+
+			if (! outlineLevelStyle.styleName.empty()) {
+				::writeStyleBeginEnd(context->styles.getStyle(outlineLevelStyle.styleName));
+			}
 
 			std::cout << ' ';
 		}
@@ -122,9 +138,8 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 	if (! ::strcmp(name, "text:span")) {
 		const Style &style = context->styles.getStyle(::attrString(atts, "text:style-name", ""));
 		context->appliedStyles.push(&style);
-		if (style.bold) {
-			std::cout << "__";
-		}
+
+		::writeStyleBeginEnd(style);
 	}
 	if (! ::strcmp(name, "text:a")) {
 		context->currentUrl = ::attrString(atts, "xlink:href", "");
@@ -158,9 +173,7 @@ void onEnd(void *userData, const XML_Char *name) {
 		const Style &style = *context->appliedStyles.top();
 		context->appliedStyles.pop();
 
-		if (style.bold) {
-			std::cout << "__";
-		}
+		::writeStyleBeginEnd(style);
 	}
 	if (! ::strcmp(name, "text:a")) {
 		std::cout << ']';

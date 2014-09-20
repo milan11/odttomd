@@ -34,9 +34,9 @@
 
 ###### 3\.5\.3 Heading
 
-####### 1 Bold style
+####### __1__ Bold style
 
-####### 2 Heading
+####### __2__ Heading
 
-####### 3 Heading
+####### __3__ Heading
 
