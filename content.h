@@ -3,4 +3,4 @@
 #include <zip.h>
 #include "styles.h"
 
-void parseContent(zip_file *f, const Styles &styles);
+void parseContent(zip_file *f, StylesContext &stylesContext);

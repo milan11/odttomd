@@ -1,8 +1,9 @@
 #pragma once
 
-#include <zip.h>
 #include <iostream>
 #include <map>
+#include <expat.h>
+#include <zip.h>
 
 class Style {
 
@@ -59,4 +60,16 @@ private:
 
 };
 
-Styles parseStyles(zip_file *f);
+class StylesContext {
+
+public:
+	Styles styles;
+
+	Style *current = nullptr;
+
+};
+
+void processStyles_onStart(StylesContext *context, const XML_Char *name, const XML_Char **atts);
+void processStyles_onEnd(StylesContext *context, const XML_Char *name);
+
+StylesContext parseStyles(zip_file *f);

@@ -8,18 +8,21 @@
 
 namespace {
 
-class Context {
-
-public:
-	Styles styles;
-
-	Style *current = nullptr;
-
-};
-
 void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
-	Context *context = static_cast<Context *>(userData);
+	StylesContext *context = static_cast<StylesContext *>(userData);
 
+	::processStyles_onStart(context, name, atts);
+}
+
+void onEnd(void *userData, const XML_Char *name) {
+	StylesContext *context = static_cast<StylesContext *>(userData);
+
+	::processStyles_onEnd(context, name);
+}
+
+}
+
+void processStyles_onStart(StylesContext *context, const XML_Char *name, const XML_Char **atts) {
 	if (! ::strcmp(name, "style:style")) {
 		context->current = &context->styles.styles[::attrString(atts, "style:name", "")];
 	}
@@ -44,22 +47,14 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 	}
 }
 
-void onEnd(void *userData, const XML_Char *name) {
-	Context *context = static_cast<Context *>(userData);
-
+void processStyles_onEnd(StylesContext *context, const XML_Char *name) {
 	if (! ::strcmp(name, "style:style")) {
 		context->current = nullptr;
 	}
 }
 
-void onData(void *, const XML_Char *s, int len) {
-	std::cout << std::string(s, static_cast<std::string::size_type>(len));
-}
-
-}
-
-Styles parseStyles(zip_file *f) {
-	Context context;
+StylesContext parseStyles(zip_file *f) {
+	StylesContext context;
 
 	XML_Parser parser = ::XML_ParserCreate(nullptr);
 	BOOST_SCOPE_EXIT(&parser) {
@@ -68,7 +63,6 @@ Styles parseStyles(zip_file *f) {
 
 	::XML_SetUserData(parser, &context);
 	::XML_SetElementHandler(parser, &onStart, &onEnd);
-	::XML_SetCharacterDataHandler(parser, &onData);
 
 	static const size_t bufferSize = 4 * 1024;
 	char buffer[bufferSize];
@@ -87,5 +81,5 @@ Styles parseStyles(zip_file *f) {
 	if (::XML_Parse(parser, buffer, 0, true) == 0)
 		throw 22;
 
-	return context.styles;
+	return context;
 }

@@ -16,7 +16,7 @@ void main_inner(const char *inputFile) {
 		::zip_close(z);
 	} BOOST_SCOPE_EXIT_END
 
-	Styles styles;
+	StylesContext stylesContext;
 	{
 		zip_file *f = zip_fopen(z, "styles.xml", 0);
 		if (f == nullptr)
@@ -25,7 +25,7 @@ void main_inner(const char *inputFile) {
 			zip_fclose(f);
 		} BOOST_SCOPE_EXIT_END
 
-		styles = ::parseStyles(f);
+		stylesContext = ::parseStyles(f);
 	}
 
 	{
@@ -36,7 +36,7 @@ void main_inner(const char *inputFile) {
 			zip_fclose(f);
 		} BOOST_SCOPE_EXIT_END
 
-		::parseContent(f, styles);
+		::parseContent(f, stylesContext);
 	}
 }
 
