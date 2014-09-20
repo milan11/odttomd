@@ -44,12 +44,15 @@ std::string createRoman(const uint32_t number, const bool upperCase) {
 		conversionRules[num - sub] = conversionRules[sub] + conversionRules[num];
 	};
 
-	addSpecial(5, 1);
-	addSpecial(10, 1);
-	addSpecial(50, 10);
-	addSpecial(100, 10);
-	addSpecial(500, 100);
-	addSpecial(1000, 100);
+	{
+		uint16_t base = 10;
+		ConversionRules::const_iterator it;
+		while ((it = conversionRules.find(base)) != conversionRules.end()) {
+			addSpecial(base, base / 10);
+			addSpecial(base / 2, base / 10);
+			base *= 10;
+		}
+	}
 
 	uint32_t currentNumber = number;
 	std::string result;
