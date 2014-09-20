@@ -31,7 +31,7 @@ void main_inner(const char *inputFile) {
 	{
 		zip_file *f = zip_fopen(z, "content.xml", 0);
 		if (f == nullptr)
-			throw 3;
+			throw 4;
 		BOOST_SCOPE_EXIT(f) {
 			zip_fclose(f);
 		} BOOST_SCOPE_EXIT_END
@@ -42,7 +42,7 @@ void main_inner(const char *inputFile) {
 
 int main(int argc, char *argv[]) {
 	if (argc != 2) {
-		std::cerr << "USAGE: odttomd <odt file>" << std::endl;
+		std::cerr << "USAGE: odttomd odt_file" << std::endl;
 		return 1;
 	}
 

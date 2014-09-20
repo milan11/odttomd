@@ -21,23 +21,23 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 	Context *context = static_cast<Context *>(userData);
 
 	if (! ::strcmp(name, "style:style")) {
-		context->current = &context->styles.styles[::attr(atts, "style:name")];
+		context->current = &context->styles.styles[::attrString(atts, "style:name", "")];
 	}
 	if (! ::strcmp(name, "style:text-properties")) {
-		if (! ::strcmp(::attr(atts, "fo:font-weight"), "bold")) {
+		if (::attrString(atts, "fo:font-weight", "") == "bold") {
 			context->current->bold = true;
 		}
 	}
 
 	if (! ::strcmp(name, "text:outline-level-style")) {
-		uint32_t level = ::strToInt(::attr(atts, "text:level"), 0, true);
+		uint32_t level = ::attrUint(atts, "text:level", 0);
 		if (level != 0) {
 			OutlineLevelStyle &outlineLevelStyle = context->styles.outlineLevelStyles[level];
-			outlineLevelStyle.numFormat = ::attr(atts, "style:num-format")[0];
-			outlineLevelStyle.numLetterSync = ::strToBool(::attr(atts, "style:num-letter-sync"), false, true);
-			outlineLevelStyle.prefix = ::attr(atts, "style:num-prefix");
-			outlineLevelStyle.suffix = ::attr(atts, "style:num-suffix");
-			outlineLevelStyle.startValue = ::strToInt(::attr(atts, "text:start-value"), 1, true);
+			outlineLevelStyle.numFormat = ::attrString(atts, "style:num-format", "");
+			outlineLevelStyle.numLetterSync = ::attrBool(atts, "style:num-letter-sync", false);
+			outlineLevelStyle.prefix = ::attrString(atts, "style:num-prefix", "");
+			outlineLevelStyle.suffix = ::attrString(atts, "style:num-suffix", "");
+			outlineLevelStyle.startValue = ::attrUint(atts, "text:start-value", 1);
 		}
 	}
 }

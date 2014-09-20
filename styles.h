@@ -13,7 +13,7 @@ public:
 class OutlineLevelStyle {
 
 public:
-	char numFormat = '\0';
+	std::string numFormat;
 	bool numLetterSync = false;
 	std::string prefix;
 	std::string suffix;

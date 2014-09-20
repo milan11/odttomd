@@ -1,6 +1,7 @@
 #pragma once
 
+#include <cstdint>
 #include <string>
 
-uint32_t strToInt(const std::string &str, const uint32_t defaultInt, const bool noErrorIfEmpty);
-bool strToBool(const std::string &str, const bool defaultBool, const bool noErrorIfEmpty);
+bool strToInt(const std::string &str, uint32_t &outputInt);
+bool strToBool(const std::string &str, bool &outputBool);

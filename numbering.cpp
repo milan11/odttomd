@@ -66,29 +66,39 @@ std::string createRoman(const uint32_t number, const bool upperCase) {
 	return result;
 }
 
-std::string createNumber(const uint32_t number, const char format, const bool letterSync) {
-	if (number == 0)
-		throw "invalid number: " + std::to_string(number);
+std::string createNumber(const uint32_t number, const std::string &format, const bool letterSync) {
+	if (number == 0) {
+		std::cerr << "Invalid number in numbering: " << number << " (no number will be printed)" << std::endl;
+		return "";
+	}
 
 	if (letterSync) {
-		switch (format) {
-			case 'A':
-				return createLettersSync(number, 'A');
-			case 'a':
-				return createLettersSync(number, 'a');
+		if (format == "A") {
+			return createLettersSync(number, 'A');
+		}
+
+		if (format == "a") {
+			return createLettersSync(number, 'a');
 		}
 	} else {
-		switch (format) {
-			case '1':
-				return std::to_string(number);
-			case 'A':
-				return createLetters(number, 'A');
-			case 'a':
-				return createLetters(number, 'a');
-			case 'I':
-				return createRoman(number, true);
-			case 'i':
-				return createRoman(number, false);
+		if (format == "1") {
+			return std::to_string(number);
+		}
+
+		if (format == "A") {
+			return createLetters(number, 'A');
+		}
+
+		if (format == "a") {
+			return createLetters(number, 'a');
+		}
+
+		if (format == "I") {
+			return createRoman(number, true);
+		}
+
+		if (format == "i") {
+			return createRoman(number, false);
 		}
 	}
 

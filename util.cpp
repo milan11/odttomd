@@ -1,30 +1,26 @@
 #include "util.h"
 
-uint32_t strToInt(const std::string &str, const uint32_t defaultInt, const bool noErrorIfEmpty) {
+bool strToInt(const std::string &str, uint32_t &outputInt) {
 	try {
 		size_t pos = 0;
-		uint32_t result = static_cast<uint32_t>(std::stoul(str, &pos));
+		outputInt = static_cast<uint32_t>(std::stoul(str, &pos));
 
-		if (pos == str.size()) {
-			return result;
-		} else {
-			throw 0;
-		}
+		return (pos == str.size());
 	} catch (...) {
-		if ((! noErrorIfEmpty) || (! str.empty())) {
-			throw "invalid number: (" + str + ")";
-		}
-		return defaultInt;
+		return false;
 	}
 }
 
-bool strToBool(const std::string &str, const bool defaultBool, const bool noErrorIfEmpty) {
-	if (str == "true") return true;
-	if (str == "false") return false;
-
-	if ((! noErrorIfEmpty) || (! str.empty())) {
-		throw "invalid bool: (" + str + ")";
+bool strToBool(const std::string &str, bool &outputBool) {
+	if (str == "true") {
+		outputBool = true;
+		return true;
 	}
 
-	return defaultBool;
+	if (str == "false") {
+		outputBool = false;
+		return true;
+	}
+
+	return false;
 }
