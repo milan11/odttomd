@@ -25,10 +25,21 @@ void onEnd(void *userData, const XML_Char *name) {
 void processStyles_onStart(StylesContext *context, const XML_Char *name, const XML_Char **atts) {
 	if (! ::strcmp(name, "style:style")) {
 		context->current = &context->styles.styles[::attrString(atts, "style:name", "")];
+		context->current->parentStyleName = ::attrString(atts, "style:parent-style-name", "");
 	}
 	if (! ::strcmp(name, "style:text-properties")) {
+		if (::attrString(atts, "fo:font-weight", "") == "normal") {
+			context->current->bold = false;
+		}
 		if (::attrString(atts, "fo:font-weight", "") == "bold") {
 			context->current->bold = true;
+		}
+
+		if (::attrString(atts, "fo:font-style", "") == "normal") {
+			context->current->italic = false;
+		}
+		if (::attrString(atts, "fo:font-style", "") == "italic") {
+			context->current->italic = true;
 		}
 	}
 

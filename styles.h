@@ -2,13 +2,30 @@
 
 #include <iostream>
 #include <map>
+#include <boost/optional.hpp>
 #include <expat.h>
 #include <zip.h>
 
 class Style {
 
 public:
-	bool bold = false;
+	std::string parentStyleName;
+
+	boost::optional<bool> bold;
+	boost::optional<bool> italic;
+
+	Style apply(const Style &applied) {
+		Style newStyle = *this;
+
+		if (applied.bold) {
+			newStyle.bold = applied.bold;
+		}
+		if (applied.italic) {
+			newStyle.italic = applied.italic;
+		}
+
+		return newStyle;
+	}
 
 };
 
@@ -34,13 +51,14 @@ public:
 	using LevelToOutlineLevelStyle = std::map<uint32_t, OutlineLevelStyle>;
 	LevelToOutlineLevelStyle outlineLevelStyles;
 
-	const Style &getStyle(const std::string &name) const {
-		NameToStyle::const_iterator it = styles.find(name);
-		if (it != styles.end()) {
-			return it->second;
+	Style getMergedStyle(const std::string &name) const {
+		const Style &style = getStyle(name);
+		if (! style.parentStyleName.empty()) {
+			Style mergedStyle = getMergedStyle(style.parentStyleName);
+
+			return mergedStyle.apply(style);
 		} else {
-			std::cerr << "Style not found: " << name << std::endl;
-			return defaultStyle;
+			return style;
 		}
 	}
 
@@ -51,6 +69,17 @@ public:
 		} else {
 			std::cerr << "Outline level style not found for level: " << outlineLevel << std::endl;
 			return defaultOutlineLevelStyle;
+		}
+	}
+
+private:
+	const Style &getStyle(const std::string &name) const {
+		NameToStyle::const_iterator it = styles.find(name);
+		if (it != styles.end()) {
+			return it->second;
+		} else {
+			std::cerr << "Style not found: " << name << std::endl;
+			return defaultStyle;
 		}
 	}
 

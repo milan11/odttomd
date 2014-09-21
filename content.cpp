@@ -18,11 +18,13 @@ public:
 	Context(StylesContext &stylesContext)
 		: stylesContext(stylesContext)
 	{
+		currentStyles.push(Style());
 	}
 
 public:
 	StylesContext stylesContext;
-	std::stack<const Style *> appliedStyles;
+
+	std::stack<Style> currentStyles;
 	uint32_t listLevel = 0;
 	std::string currentUrl;
 	std::vector<uint32_t> currentOutlineNumbering;
@@ -64,10 +66,34 @@ void writeEscapedString(const std::string &str) {
 	}
 }
 
-void writeStyleBeginEnd(const Style &style) {
-	if (style.bold) {
-		std::cout << "__";
+void writeStyleDiff(const Style &oldStyle, const Style &newStyle) {
+	if (!oldStyle.bold.get_value_or(false) && newStyle.bold.get_value_or(false)) {
+		std::cout << "**";
 	}
+	if (!oldStyle.italic.get_value_or(false) && newStyle.italic.get_value_or(false)) {
+		std::cout << "_";
+	}
+
+	if (oldStyle.italic.get_value_or(false) && !newStyle.italic.get_value_or(false)) {
+		std::cout << "_";
+	}
+	if (oldStyle.bold.get_value_or(false) && !newStyle.bold.get_value_or(false)) {
+		std::cout << "**";
+	}
+}
+
+void pushStyle(Context &context, const Style &style) {
+	const Style &oldStyle = context.currentStyles.top();
+	context.currentStyles.push(context.currentStyles.top().apply(style));
+
+	::writeStyleDiff(oldStyle, context.currentStyles.top());
+}
+
+void popStyle(Context &context) {
+	const Style oldStyle = context.currentStyles.top();
+	context.currentStyles.pop();
+
+	::writeStyleDiff(oldStyle, context.currentStyles.top());
 }
 
 void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
@@ -106,7 +132,7 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 			}
 
 			if (! outlineLevelStyle.styleName.empty()) {
-				::writeStyleBeginEnd(context->stylesContext.styles.getStyle(outlineLevelStyle.styleName));
+				::pushStyle(*context, context->stylesContext.styles.getMergedStyle(outlineLevelStyle.styleName));
 			}
 
 			::writeEscapedString(outlineLevelStyle.prefix);
@@ -125,11 +151,20 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 			::writeEscapedString(outlineLevelStyle.suffix);
 
 			if (! outlineLevelStyle.styleName.empty()) {
-				::writeStyleBeginEnd(context->stylesContext.styles.getStyle(outlineLevelStyle.styleName));
+				::popStyle(*context);
 			}
 
 			std::cout << ' ';
 		}
+	}
+	if (! ::strcmp(name, "text:p")) {
+		::pushStyle(*context, context->stylesContext.styles.getMergedStyle(::attrString(atts, "text:style-name", "")));
+	}
+	if (! ::strcmp(name, "text:span")) {
+		::pushStyle(*context, context->stylesContext.styles.getMergedStyle(::attrString(atts, "text:style-name", "")));
+	}
+	if (! ::strcmp(name, "text:line-break")) {
+		std::cout << "  \n";
 	}
 	if (! ::strcmp(name, "text:list")) {
 		++(context->listLevel);
@@ -137,18 +172,10 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 	if (! ::strcmp(name, "text:list-item")) {
 		std::cout << std::string((context->listLevel - 1) * 2, ' ') << ((context->listLevel % 2) ? '*' : '-') << ' ';
 	}
-	if (! ::strcmp(name, "text:span")) {
-		const Style &style = context->stylesContext.styles.getStyle(::attrString(atts, "text:style-name", ""));
-		context->appliedStyles.push(&style);
 
-		::writeStyleBeginEnd(style);
-	}
 	if (! ::strcmp(name, "text:a")) {
 		context->currentUrl = ::attrString(atts, "xlink:href", "");
 		std::cout << '[';
-	}
-	if (! ::strcmp(name, "text:line-break")) {
-		std::cout << "  \n";
 	}
 }
 
@@ -162,22 +189,21 @@ void onEnd(void *userData, const XML_Char *name) {
 		std::cout << '\n';
 	}
 	if (! ::strcmp(name, "text:p")) {
+		::popStyle(*context);
+
 		std::cout << '\n';
 
 		if (context->listLevel == 0)
 			std::cout << '\n';
+	}
+	if (! ::strcmp(name, "text:span")) {
+		::popStyle(*context);
 	}
 	if (! ::strcmp(name, "text:list")) {
 		--(context->listLevel);
 
 		if (context->listLevel == 0)
 			std::cout << '\n';
-	}
-	if (! ::strcmp(name, "text:span")) {
-		const Style &style = *context->appliedStyles.top();
-		context->appliedStyles.pop();
-
-		::writeStyleBeginEnd(style);
 	}
 	if (! ::strcmp(name, "text:a")) {
 		std::cout << ']';
