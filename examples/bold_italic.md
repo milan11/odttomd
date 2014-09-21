@@ -14,15 +14,15 @@ _This is italic using a paragraph style\._
 
 **This is bold, _bold italic_ using a character style in a bold paragraph style\.**
 
-_This is italic, **bold italic** using a character style in an italic paragraph style\._
+_This is italic, _**_bold italic_**_ using a character style in an italic paragraph style\._
 
 **_This is bold italic using a character style in a bold italic paragraph style\._**
 
 
 
-**This is **default**, _**italic**_, bold italic without using an explicit style in a bold paragraph style\.**
+**This is **default**, _**_italic_**_, bold italic without using an explicit style in a bold paragraph style\.**
 
-_This is **_bold_**, _default_, **bold italic** without using an explicit style in an italic paragraph style\._
+_This is _**_bold_**_, _default_, _**_bold italic_**_ without using an explicit style in an italic paragraph style\._
 
-**_This is _bold_, **italic**, _**default**_ without using an explicit style in a bold italic paragraph style\._**
+**_This is _bold_, _**_italic_**_, _**default**_ without using an explicit style in a bold italic paragraph style\._**
 
