@@ -67,7 +67,7 @@ void writeEscapedString(const std::string &str) {
 }
 
 void writeStyleDiff(const Style &oldStyle, const Style &newStyle) {
-	if (!oldStyle.bold.get_value_or(false) && newStyle.bold.get_value_or(false)) {
+	if (oldStyle.bold.get_value_or(false) != newStyle.bold.get_value_or(false)) {
 		if (oldStyle.italic.get_value_or(false)) {
 			std::cout << "_";
 		}
@@ -76,20 +76,7 @@ void writeStyleDiff(const Style &oldStyle, const Style &newStyle) {
 			std::cout << "_";
 		}
 	}
-	else if (!oldStyle.italic.get_value_or(false) && newStyle.italic.get_value_or(false)) {
-		std::cout << "_";
-	}
-
-	if (oldStyle.bold.get_value_or(false) && !newStyle.bold.get_value_or(false)) {
-		if (oldStyle.italic.get_value_or(false)) {
-			std::cout << "_";
-		}
-		std::cout << "**";
-		if (newStyle.italic.get_value_or(false)) {
-			std::cout << "_";
-		}
-	}
-	else if (oldStyle.italic.get_value_or(false) && !newStyle.italic.get_value_or(false)) {
+	else if (oldStyle.italic.get_value_or(false) != newStyle.italic.get_value_or(false)) {
 		std::cout << "_";
 	}
 }
