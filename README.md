@@ -2,7 +2,7 @@
 
 ODT \(OpenDocument Text\) to MD \(Markdown\) converter\.
 
-__License:__ Public domain\. Use at your own risk\. There is absolutely no warranty of any kind\.
+**License:** Public domain\. Use at your own risk\. There is absolutely no warranty of any kind\.
 
 ##  Features
 
@@ -21,28 +21,28 @@ __License:__ Public domain\. Use at your own risk\. There is absolutely no warra
 
 ##  Build
 
-* __implementation language:__ C, C\+\+11
-* __platform:__ independent
-* __latest source code:__ [https://github\.com/milan11/odttomd](https://github\.com/milan11/odttomd)
-* __source code distribution:__ as CMake project
-* __build dependencies:__
+* **implementation language:** C, C\+\+11
+* **platform:** independent
+* **latest source code:** [https://github\.com/milan11/odttomd](https://github\.com/milan11/odttomd)
+* **source code distribution:** as CMake project
+* **build dependencies:**
   - boost
   - expat
   - libzip
-* __build steps:__
+* **build steps:**
   - git clone git@github\.com:milan11/odttomd\.git
   - cd odttomd
   - cmake
   - make
-* __possible CMake arguments:__
-  - __debug build:__ \-DCMAKE\_BUILD\_TYPE=Debug
-  - __force using gcc compiler:__ \-DCMAKE\_CXX\_COMPILER=g\+\+
-  - __force using clang compiler:__ \-DCMAKE\_CXX\_COMPILER=clang\+\+
+* **possible CMake arguments:**
+  - **debug build:** \-DCMAKE\_BUILD\_TYPE=Debug
+  - **force using gcc compiler:** \-DCMAKE\_CXX\_COMPILER=g\+\+
+  - **force using clang compiler:** \-DCMAKE\_CXX\_COMPILER=clang\+\+
 
 ##  Supported Environment
 
-* __OS:__ Linux tested only \(but should be multiplatform\)
-* __needs these libraries \(is dynamically linked with\):__
+* **OS:** Linux tested only \(but should be multiplatform\)
+* **needs these libraries \(is dynamically linked with\):**
   - expat
   - libzip
 
@@ -56,8 +56,8 @@ Unsupported data of the input odt\_file is reported as a warning to standard err
 
 ##  Examples
 
-* the __examples directory__ contains MD files and their corresponding original ODT files
-* these __repositories__ have their README\.MD files converted from README\.ODT files:
+* the **examples directory** contains MD files and their corresponding original ODT files
+* these **repositories** have their README\.MD files converted from README\.ODT files:
   - [https://github\.com/milan11/odttomd](https://github\.com/milan11/odttomd) \(this repository\)
   - [https://github\.com/milan11/repodbsync](https://github\.com/milan11/repodbsync)
 
