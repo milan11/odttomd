@@ -43,7 +43,8 @@ __License:__ Public domain\. Use at your own risk\. There is absolutely no warra
 
 * __OS:__ Linux tested only \(but should be multiplatform\)
 * __needs these libraries \(is dynamically linked with\):__
-  - expat, libzip
+  - expat
+  - libzip
 
 ##  Usage
 
