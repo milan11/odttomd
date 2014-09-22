@@ -12,6 +12,13 @@
 
 namespace {
 
+class List {
+
+public:
+	std::string listStyleName;
+	std::vector<uint32_t> currentNumbering;
+};
+
 class Context {
 
 public:
@@ -25,9 +32,10 @@ public:
 	StylesContext stylesContext;
 
 	std::stack<Style> currentStyles;
-	uint32_t listLevel = 0;
 	std::string currentUrl;
 	std::vector<uint32_t> currentOutlineNumbering;
+
+	std::stack<List> currentLists;
 
 };
 
@@ -166,10 +174,69 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 		std::cout << "  \n";
 	}
 	if (! ::strcmp(name, "text:list")) {
-		++(context->listLevel);
+		std::string listStyleName = ::attrString(atts, "text:style-name", "");
+
+		const bool newList = (! listStyleName.empty());
+
+		if (newList) {
+			context->currentLists.push(List());
+
+			context->currentLists.top().listStyleName = ::attrString(atts, "text:style-name", "");
+		}
+
+		uint32_t level = static_cast<uint32_t>(context->currentLists.top().currentNumbering.size()) + 1;
+
+		if (context->stylesContext.styles.getListStyle(context->currentLists.top().listStyleName).isNumbered(level)) {
+			const OutlineLevelStyle &outlineLevelStyle = context->stylesContext.styles.getListStyle(context->currentLists.top().listStyleName).getOutlineLevelStyle(level);
+			context->currentLists.top().currentNumbering.push_back(outlineLevelStyle.startValue);
+		} else {
+			context->currentLists.top().currentNumbering.push_back(0);
+		}
 	}
 	if (! ::strcmp(name, "text:list-item")) {
-		std::cout << std::string((context->listLevel - 1) * 2, ' ') << ((context->listLevel % 2) ? '*' : '-') << ' ';
+		uint32_t level = static_cast<uint32_t>(context->currentLists.top().currentNumbering.size());
+
+		std::cout << std::string((level - 1) * 2, ' ');
+
+		if (context->stylesContext.styles.getListStyle(context->currentLists.top().listStyleName).isNumbered(level)) {
+			const OutlineLevelStyle &outlineLevelStyle = context->stylesContext.styles.getListStyle(context->currentLists.top().listStyleName).getOutlineLevelStyle(level);
+
+			uint32_t currentNumber = context->currentLists.top().currentNumbering.back();
+
+			uint32_t fromLevel = 1;
+			if (outlineLevelStyle.displayLevels <= level) {
+				fromLevel = 1 + level - outlineLevelStyle.displayLevels;
+			} else {
+				std::cerr << "More levels to display than the current level: " << outlineLevelStyle.displayLevels << " > " << level << std::endl;
+			}
+
+			if (! outlineLevelStyle.styleName.empty()) {
+				::pushStyle(*context, context->stylesContext.styles.getMergedStyle(outlineLevelStyle.styleName));
+			}
+
+			::writeEscapedString(outlineLevelStyle.prefix);
+
+			for (uint32_t higherLevel = fromLevel; higherLevel < level; ++higherLevel) {
+				const OutlineLevelStyle &higherLevelStyle = context->stylesContext.styles.getListStyle(context->currentLists.top().listStyleName).getOutlineLevelStyle(higherLevel);
+				if (! higherLevelStyle.numFormat.empty()) {
+					::writeEscapedString(numbering::createNumber(context->currentLists.top().currentNumbering[higherLevel - 1], higherLevelStyle.numFormat, higherLevelStyle.numLetterSync));
+				}
+				::writeEscapedChar('.');
+			}
+			if (! outlineLevelStyle.numFormat.empty()) {
+				::writeEscapedString(numbering::createNumber(currentNumber, outlineLevelStyle.numFormat, outlineLevelStyle.numLetterSync));
+			}
+
+			::writeEscapedString(outlineLevelStyle.suffix);
+
+			if (! outlineLevelStyle.styleName.empty()) {
+				::popStyle(*context);
+			}
+		} else {
+			std::cout << ((level % 2) ? '*' : '-');
+		}
+
+		std::cout << ' ';
 	}
 
 	if (! ::strcmp(name, "text:a")) {
@@ -192,17 +259,24 @@ void onEnd(void *userData, const XML_Char *name) {
 
 		std::cout << '\n';
 
-		if (context->listLevel == 0)
+		if (context->currentLists.size() == 0)
 			std::cout << '\n';
 	}
 	if (! ::strcmp(name, "text:span")) {
 		::popStyle(*context);
 	}
 	if (! ::strcmp(name, "text:list")) {
-		--(context->listLevel);
+		context->currentLists.top().currentNumbering.pop_back();
 
-		if (context->listLevel == 0)
+		if (context->currentLists.top().currentNumbering.empty()) {
+			context->currentLists.pop();
+		}
+
+		if (context->currentLists.size() == 0)
 			std::cout << '\n';
+	}
+	if (! ::strcmp(name, "text:list-item")) {
+		++context->currentLists.top().currentNumbering.back();
 	}
 	if (! ::strcmp(name, "text:a")) {
 		std::cout << ']';
