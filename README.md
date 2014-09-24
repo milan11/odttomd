@@ -8,7 +8,7 @@ ODT \(OpenDocument Text\) to MD \(Markdown\) converter\.
 
 * paragraphs, line breaks inside a paragraph
 * headings \(with automatic numbering\)
-* lists \(multi\-level\)
+* bullet lists and numbered lists \(multi\-level\)
 * bold
 * links
 
