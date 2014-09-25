@@ -5,7 +5,7 @@ set -e
 
 ODTTOMD_PATH="../../odttomd-build/debug/odttomd"
 
-for PROFILE in standard github plain readable strict
+for PROFILE in standard github plain_text readable parseable
 do
 	echo "---"
 	echo "PROFILE: ${PROFILE}"

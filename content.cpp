@@ -48,6 +48,11 @@ void writeEscapedChar(const char c) {
 		case '>':
 			std::cout << "&gt;";
 			break;
+		case '.':
+			if (options().escapeDotInText)
+				std::cout << '\\';
+			std::cout << c;
+			break;
 		case '\\':
 		case '`':
 		case '*':
@@ -61,7 +66,6 @@ void writeEscapedChar(const char c) {
 		case '#':
 		case '+':
 		case '-':
-		case '.':
 		case '!':
 			std::cout << '\\';
 		default:
@@ -76,16 +80,16 @@ void writeEscapedString(const std::string &str) {
 }
 
 void writeStyleDiff(const Style &oldStyle, const Style &newStyle) {
-	if (options().supportBold && (oldStyle.bold.get_value_or(false) != newStyle.bold.get_value_or(false))) {
-		if (options().supportItalic && oldStyle.italic.get_value_or(false)) {
+	if (options().bold && (oldStyle.bold.get_value_or(false) != newStyle.bold.get_value_or(false))) {
+		if (options().italic && oldStyle.italic.get_value_or(false)) {
 			std::cout << "_";
 		}
 		std::cout << "**";
-		if (options().supportItalic && newStyle.italic.get_value_or(false)) {
+		if (options().italic && newStyle.italic.get_value_or(false)) {
 			std::cout << "_";
 		}
 	}
-	else if (options().supportItalic && (oldStyle.italic.get_value_or(false) != newStyle.italic.get_value_or(false))) {
+	else if (options().italic && (oldStyle.italic.get_value_or(false) != newStyle.italic.get_value_or(false))) {
 		std::cout << "_";
 	}
 }
@@ -139,7 +143,7 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 				std::cerr << "More levels to display than the current level: " << outlineLevelStyle.displayLevels << " > " << level << std::endl;
 			}
 
-			if (! outlineLevelStyle.styleName.empty()) {
+			if (options().stylesInHeadingNumbers && (! outlineLevelStyle.styleName.empty())) {
 				::pushStyle(*context, context->stylesContext.styles.getMergedStyle(outlineLevelStyle.styleName));
 			}
 
@@ -148,17 +152,23 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 			for (uint32_t higherLevel = fromLevel; higherLevel < level; ++higherLevel) {
 				const OutlineLevelStyle &higherLevelStyle = context->stylesContext.styles.getOutlineLevelStyle(higherLevel);
 				if (! higherLevelStyle.numFormat.empty()) {
-					::writeEscapedString(numbering::createNumber(context->currentOutlineNumbering[higherLevel - 1], higherLevelStyle.numFormat, higherLevelStyle.numLetterSync));
+					::writeEscapedString(numbering::createNumber(context->currentOutlineNumbering[higherLevel - 1], options().headingNumberFormats ? higherLevelStyle.numFormat : "1", higherLevelStyle.numLetterSync));
 				}
-				::writeEscapedChar('.');
+				if (! options().escapeDotInHeadingNumbers)
+					std::cout << '.';
+				else
+					::writeEscapedChar('.');
 			}
 			if (! outlineLevelStyle.numFormat.empty()) {
-				::writeEscapedString(numbering::createNumber(currentNumber, outlineLevelStyle.numFormat, outlineLevelStyle.numLetterSync));
+				::writeEscapedString(numbering::createNumber(currentNumber, options().headingNumberFormats ? outlineLevelStyle.numFormat : "1", outlineLevelStyle.numLetterSync));
 			}
 
-			::writeEscapedString(outlineLevelStyle.suffix);
+			if ((! options().escapeDotInHeadingNumbers) && outlineLevelStyle.suffix == ".")
+				std::cout << '.';
+			else
+				::writeEscapedString(outlineLevelStyle.suffix);
 
-			if (! outlineLevelStyle.styleName.empty()) {
+			if (options().stylesInHeadingNumbers && (! outlineLevelStyle.styleName.empty())) {
 				::popStyle(*context);
 			}
 
@@ -211,7 +221,7 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 				std::cerr << "More levels to display than the current level: " << outlineLevelStyle.displayLevels << " > " << level << std::endl;
 			}
 
-			if (! outlineLevelStyle.styleName.empty()) {
+			if (options().stylesInListNumbers && (! outlineLevelStyle.styleName.empty())) {
 				::pushStyle(*context, context->stylesContext.styles.getMergedStyle(outlineLevelStyle.styleName));
 			}
 
@@ -220,17 +230,23 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 			for (uint32_t higherLevel = fromLevel; higherLevel < level; ++higherLevel) {
 				const OutlineLevelStyle &higherLevelStyle = context->stylesContext.styles.getListStyle(context->currentLists.top().listStyleName).getOutlineLevelStyle(higherLevel);
 				if (! higherLevelStyle.numFormat.empty()) {
-					::writeEscapedString(numbering::createNumber(context->currentLists.top().currentNumbering[higherLevel - 1], higherLevelStyle.numFormat, higherLevelStyle.numLetterSync));
+					::writeEscapedString(numbering::createNumber(context->currentLists.top().currentNumbering[higherLevel - 1], options().listNumberFormats ? higherLevelStyle.numFormat : "1", higherLevelStyle.numLetterSync));
 				}
-				::writeEscapedChar('.');
+				if (! options().escapeDotInListNumbers)
+					std::cout << '.';
+				else
+					::writeEscapedChar('.');
 			}
 			if (! outlineLevelStyle.numFormat.empty()) {
-				::writeEscapedString(numbering::createNumber(currentNumber, outlineLevelStyle.numFormat, outlineLevelStyle.numLetterSync));
+				::writeEscapedString(numbering::createNumber(currentNumber, options().listNumberFormats ? outlineLevelStyle.numFormat : "1", outlineLevelStyle.numLetterSync));
 			}
 
-			::writeEscapedString(outlineLevelStyle.suffix);
+			if ((! options().escapeDotInListNumbers) && outlineLevelStyle.suffix == ".")
+				std::cout << '.';
+			else
+				::writeEscapedString(outlineLevelStyle.suffix);
 
-			if (! outlineLevelStyle.styleName.empty()) {
+			if (options().stylesInListNumbers && (! outlineLevelStyle.styleName.empty())) {
 				::popStyle(*context);
 			}
 		} else {

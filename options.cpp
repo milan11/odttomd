@@ -6,28 +6,63 @@ void setProfile(const std::string &name) {
 	currentOptions = Options();
 
 	if (name == "standard") {
-		currentOptions.supportBold = true;
-		currentOptions.supportItalic = true;
+		currentOptions.headingNumberFormats = true;
+		currentOptions.listNumberFormats = false;
+		currentOptions.escapeDotInHeadingNumbers = false;
+		currentOptions.escapeDotInListNumbers = false;
+		currentOptions.escapeDotInText = false;
+		currentOptions.bold = true;
+		currentOptions.italic = true;
+		currentOptions.stylesInHeadingNumbers = true;
+		currentOptions.stylesInListNumbers = false;
 	}
 
 	if (name == "github") {
-		currentOptions.supportBold = true;
-		currentOptions.supportItalic = true;
+		currentOptions.headingNumberFormats = true;
+		currentOptions.listNumberFormats = false;
+		currentOptions.escapeDotInHeadingNumbers = false;
+		currentOptions.escapeDotInListNumbers = false;
+		currentOptions.escapeDotInText = false;
+		currentOptions.bold = true;
+		currentOptions.italic = true;
+		currentOptions.stylesInHeadingNumbers = true;
+		currentOptions.stylesInListNumbers = false;
 	}
 
-	if (name == "plain") {
-		currentOptions.supportBold = false;
-		currentOptions.supportItalic = false;
+	if (name == "plain_text") {
+		currentOptions.headingNumberFormats = true;
+		currentOptions.listNumberFormats = true;
+		currentOptions.escapeDotInHeadingNumbers = false;
+		currentOptions.escapeDotInListNumbers = false;
+		currentOptions.escapeDotInText = false;
+		currentOptions.bold = false;
+		currentOptions.italic = false;
+		currentOptions.stylesInHeadingNumbers = false;
+		currentOptions.stylesInListNumbers = false;
 	}
 
 	if (name == "readable") {
-		currentOptions.supportBold = true;
-		currentOptions.supportItalic = true;
+		currentOptions.headingNumberFormats = true;
+		currentOptions.listNumberFormats = false;
+		currentOptions.escapeDotInHeadingNumbers = false;
+		currentOptions.escapeDotInListNumbers = false;
+		currentOptions.escapeDotInText = false;
+		currentOptions.bold = true;
+		currentOptions.italic = true;
+		currentOptions.stylesInHeadingNumbers = false;
+		currentOptions.stylesInListNumbers = false;
 	}
 
-	if (name == "strict") {
-		currentOptions.supportBold = true;
-		currentOptions.supportItalic = true;
+	if (name == "parseable") {
+		currentOptions.headingNumberFormats = false;
+		currentOptions.listNumberFormats = false;
+		currentOptions.escapeDotInHeadingNumbers = false;
+		currentOptions.escapeDotInListNumbers = false;
+		currentOptions.escapeDotInText = true;
+		currentOptions.bold = true;
+		currentOptions.italic = true;
+		currentOptions.stylesInHeadingNumbers = false;
+		currentOptions.stylesInListNumbers = false;
 	}
 }
 
