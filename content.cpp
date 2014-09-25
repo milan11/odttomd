@@ -108,6 +108,16 @@ void popStyle(Context &context) {
 	::writeStyleDiff(oldStyle, context.currentStyles.top());
 }
 
+void fixOutlineLevelStyleForMarkdown(OutlineLevelStyle &style) {
+	if (! style.numFormat.empty()) {
+		style.numFormat = "1";
+	}
+
+	style.numLetterSync = false;
+	style.prefix = "";
+	style.suffix = ".";
+}
+
 void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 	Context *context = static_cast<Context *>(userData);
 
@@ -127,7 +137,11 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 				context->currentOutlineNumbering.push_back(context->stylesContext.styles.getOutlineLevelStyle(addedLevel).startValue);
 			}
 
-			const OutlineLevelStyle &outlineLevelStyle = context->stylesContext.styles.getOutlineLevelStyle(level);
+			OutlineLevelStyle outlineLevelStyle = context->stylesContext.styles.getOutlineLevelStyle(level);
+			if (! options().headingNumberFormats) {
+				::fixOutlineLevelStyleForMarkdown(outlineLevelStyle);
+			}
+
 			if (context->currentOutlineNumbering.size() < level) {
 				context->currentOutlineNumbering.push_back(outlineLevelStyle.startValue);
 			} else {
@@ -150,9 +164,12 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 			::writeEscapedString(outlineLevelStyle.prefix);
 
 			for (uint32_t higherLevel = fromLevel; higherLevel < level; ++higherLevel) {
-				const OutlineLevelStyle &higherLevelStyle = context->stylesContext.styles.getOutlineLevelStyle(higherLevel);
+				OutlineLevelStyle higherLevelStyle = context->stylesContext.styles.getOutlineLevelStyle(higherLevel);
+				if (! options().headingNumberFormats) {
+					::fixOutlineLevelStyleForMarkdown(higherLevelStyle);
+				}
 				if (! higherLevelStyle.numFormat.empty()) {
-					::writeEscapedString(numbering::createNumber(context->currentOutlineNumbering[higherLevel - 1], options().headingNumberFormats ? higherLevelStyle.numFormat : "1", options().headingNumberFormats ? higherLevelStyle.numLetterSync : false));
+					::writeEscapedString(numbering::createNumber(context->currentOutlineNumbering[higherLevel - 1], higherLevelStyle.numFormat, higherLevelStyle.numLetterSync));
 				}
 				if (! options().escapeDotInHeadingNumbers)
 					std::cout << '.';
@@ -160,7 +177,7 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 					::writeEscapedChar('.');
 			}
 			if (! outlineLevelStyle.numFormat.empty()) {
-				::writeEscapedString(numbering::createNumber(currentNumber, options().headingNumberFormats ? outlineLevelStyle.numFormat : "1", options().headingNumberFormats ? outlineLevelStyle.numLetterSync : false));
+				::writeEscapedString(numbering::createNumber(currentNumber, outlineLevelStyle.numFormat, outlineLevelStyle.numLetterSync));
 			}
 
 			if ((! options().escapeDotInHeadingNumbers) && outlineLevelStyle.suffix == ".")
@@ -210,7 +227,10 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 		std::cout << std::string((level - 1) * 2, ' ');
 
 		if (context->stylesContext.styles.getListStyle(context->currentLists.top().listStyleName).isNumbered(level)) {
-			const OutlineLevelStyle &outlineLevelStyle = context->stylesContext.styles.getListStyle(context->currentLists.top().listStyleName).getOutlineLevelStyle(level);
+			OutlineLevelStyle outlineLevelStyle = context->stylesContext.styles.getListStyle(context->currentLists.top().listStyleName).getOutlineLevelStyle(level);
+			if (! options().listNumberFormats) {
+				::fixOutlineLevelStyleForMarkdown(outlineLevelStyle);
+			}
 
 			uint32_t currentNumber = context->currentLists.top().currentNumbering.back();
 
@@ -228,9 +248,12 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 			::writeEscapedString(outlineLevelStyle.prefix);
 
 			for (uint32_t higherLevel = fromLevel; higherLevel < level; ++higherLevel) {
-				const OutlineLevelStyle &higherLevelStyle = context->stylesContext.styles.getListStyle(context->currentLists.top().listStyleName).getOutlineLevelStyle(higherLevel);
+				OutlineLevelStyle higherLevelStyle = context->stylesContext.styles.getListStyle(context->currentLists.top().listStyleName).getOutlineLevelStyle(higherLevel);
+				if (! options().listNumberFormats) {
+					::fixOutlineLevelStyleForMarkdown(higherLevelStyle);
+				}
 				if (! higherLevelStyle.numFormat.empty()) {
-					::writeEscapedString(numbering::createNumber(context->currentLists.top().currentNumbering[higherLevel - 1], options().listNumberFormats ? higherLevelStyle.numFormat : "1", options().listNumberFormats ? higherLevelStyle.numLetterSync : false));
+					::writeEscapedString(numbering::createNumber(context->currentLists.top().currentNumbering[higherLevel - 1], higherLevelStyle.numFormat, higherLevelStyle.numLetterSync));
 				}
 				if (! options().escapeDotInListNumbers)
 					std::cout << '.';
@@ -238,7 +261,7 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 					::writeEscapedChar('.');
 			}
 			if (! outlineLevelStyle.numFormat.empty()) {
-				::writeEscapedString(numbering::createNumber(currentNumber, options().listNumberFormats ? outlineLevelStyle.numFormat : "1", options().listNumberFormats ? outlineLevelStyle.numLetterSync : false));
+				::writeEscapedString(numbering::createNumber(currentNumber, outlineLevelStyle.numFormat, outlineLevelStyle.numLetterSync));
 			}
 
 			if ((! options().escapeDotInListNumbers) && outlineLevelStyle.suffix == ".")

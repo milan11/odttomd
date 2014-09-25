@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
 	desc.add_options()
 		("help", "shows usage")
 		("odt_file", po::value<std::string>(), "input ODT (OpenDocument Text) file")
-		("profile", po::value<std::string>(), "output profile")
+		("profile", po::value<std::string>()->default_value("standard"), "output profile")
 	;
 
 	po::positional_options_description p;
