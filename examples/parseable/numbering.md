@@ -4,11 +4,11 @@
 
 # 3 Heading
 
-## a Number format changed
+## 1 Number format changed
 
-## b Heading
+## 2 Heading
 
-## c Heading
+## 3 Heading
 
 ### &gt;1 Prefix
 
@@ -34,9 +34,9 @@
 
 ###### 3.5.3 Heading
 
-####### **1** Bold style
+####### 1 Bold style
 
-####### **2** Heading
+####### 2 Heading
 
-####### **3** Heading
+####### 3 Heading
 

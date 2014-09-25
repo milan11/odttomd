@@ -28,11 +28,11 @@
 
 ##### 5 Heading
 
-###### 3\.5\.1 Shows 3 sublevels
+###### 3.5.1 Shows 3 sublevels
 
-###### 3\.5\.2 Heading
+###### 3.5.2 Heading
 
-###### 3\.5\.3 Heading
+###### 3.5.3 Heading
 
 ####### **1** Bold style
 

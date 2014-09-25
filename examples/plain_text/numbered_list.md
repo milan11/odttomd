@@ -1,9 +1,9 @@
 1 Simple numbering
 2 Item
 3 Item
-  1 Number format changed
-  2 Item
-  3 Item
+  i Number format changed
+  ii Item
+  iii Item
     \[1 Prefix
     \[2 item
     \[3 Item

@@ -152,7 +152,7 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 			for (uint32_t higherLevel = fromLevel; higherLevel < level; ++higherLevel) {
 				const OutlineLevelStyle &higherLevelStyle = context->stylesContext.styles.getOutlineLevelStyle(higherLevel);
 				if (! higherLevelStyle.numFormat.empty()) {
-					::writeEscapedString(numbering::createNumber(context->currentOutlineNumbering[higherLevel - 1], options().headingNumberFormats ? higherLevelStyle.numFormat : "1", higherLevelStyle.numLetterSync));
+					::writeEscapedString(numbering::createNumber(context->currentOutlineNumbering[higherLevel - 1], options().headingNumberFormats ? higherLevelStyle.numFormat : "1", options().headingNumberFormats ? higherLevelStyle.numLetterSync : false));
 				}
 				if (! options().escapeDotInHeadingNumbers)
 					std::cout << '.';
@@ -160,7 +160,7 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 					::writeEscapedChar('.');
 			}
 			if (! outlineLevelStyle.numFormat.empty()) {
-				::writeEscapedString(numbering::createNumber(currentNumber, options().headingNumberFormats ? outlineLevelStyle.numFormat : "1", outlineLevelStyle.numLetterSync));
+				::writeEscapedString(numbering::createNumber(currentNumber, options().headingNumberFormats ? outlineLevelStyle.numFormat : "1", options().headingNumberFormats ? outlineLevelStyle.numLetterSync : false));
 			}
 
 			if ((! options().escapeDotInHeadingNumbers) && outlineLevelStyle.suffix == ".")
@@ -230,7 +230,7 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 			for (uint32_t higherLevel = fromLevel; higherLevel < level; ++higherLevel) {
 				const OutlineLevelStyle &higherLevelStyle = context->stylesContext.styles.getListStyle(context->currentLists.top().listStyleName).getOutlineLevelStyle(higherLevel);
 				if (! higherLevelStyle.numFormat.empty()) {
-					::writeEscapedString(numbering::createNumber(context->currentLists.top().currentNumbering[higherLevel - 1], options().listNumberFormats ? higherLevelStyle.numFormat : "1", higherLevelStyle.numLetterSync));
+					::writeEscapedString(numbering::createNumber(context->currentLists.top().currentNumbering[higherLevel - 1], options().listNumberFormats ? higherLevelStyle.numFormat : "1", options().listNumberFormats ? higherLevelStyle.numLetterSync : false));
 				}
 				if (! options().escapeDotInListNumbers)
 					std::cout << '.';
@@ -238,7 +238,7 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 					::writeEscapedChar('.');
 			}
 			if (! outlineLevelStyle.numFormat.empty()) {
-				::writeEscapedString(numbering::createNumber(currentNumber, options().listNumberFormats ? outlineLevelStyle.numFormat : "1", outlineLevelStyle.numLetterSync));
+				::writeEscapedString(numbering::createNumber(currentNumber, options().listNumberFormats ? outlineLevelStyle.numFormat : "1", options().listNumberFormats ? outlineLevelStyle.numLetterSync : false));
 			}
 
 			if ((! options().escapeDotInListNumbers) && outlineLevelStyle.suffix == ".")
