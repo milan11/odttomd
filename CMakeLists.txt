@@ -13,9 +13,10 @@ include_directories(${EXPAT_INCLUDE_DIRS})
 set(ZIP_LIBRARIES "zip")
 include_directories(${ZIP_INCLUDE_DIRS})
 
-find_package(Boost REQUIRED)
-INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
+find_package(Boost REQUIRED COMPONENTS program_options)
+include_directories(${Boost_INCLUDE_DIRS})
 
 add_executable(${PROJECT_NAME} ${SRC_LIST})
 target_link_libraries(${PROJECT_NAME} ${EXPAT_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} ${ZIP_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})

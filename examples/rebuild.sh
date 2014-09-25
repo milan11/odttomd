@@ -5,10 +5,16 @@ set -e
 
 ODTTOMD_PATH="../../odttomd-build/debug/odttomd"
 
-for ODT_FILE in *.odt
+for PROFILE in standard github plain readable strict
 do
-	echo ">> ${ODT_FILE}"
-	FILE_NAME=$(basename "${ODT_FILE}" ".odt")
-	"${ODTTOMD_PATH}" "${ODT_FILE}" > "${FILE_NAME}.md"
+	echo "---"
+	echo "PROFILE: ${PROFILE}"
+	mkdir -p "${PROFILE}"
+	for ODT_FILE in *.odt
+	do
+		echo ">> ${ODT_FILE}"
+		FILE_NAME=$(basename "${ODT_FILE}" ".odt")
+		"${ODTTOMD_PATH}" --profile "${PROFILE}" "${ODT_FILE}" > "${PROFILE}/${FILE_NAME}.md"
+	done
 done
 
