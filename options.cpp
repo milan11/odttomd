@@ -1,5 +1,7 @@
 #include "options.h"
 
+#include <iostream>
+
 Options currentOptions;
 
 void setProfile(const std::string &name) {
@@ -15,6 +17,8 @@ void setProfile(const std::string &name) {
 		currentOptions.italic = true;
 		currentOptions.stylesInHeadingNumbers = true;
 		currentOptions.stylesInListNumbers = false;
+
+		return;
 	}
 
 	if (name == "github") {
@@ -27,6 +31,8 @@ void setProfile(const std::string &name) {
 		currentOptions.italic = true;
 		currentOptions.stylesInHeadingNumbers = true;
 		currentOptions.stylesInListNumbers = false;
+
+		return;
 	}
 
 	if (name == "plain_text") {
@@ -39,6 +45,8 @@ void setProfile(const std::string &name) {
 		currentOptions.italic = false;
 		currentOptions.stylesInHeadingNumbers = false;
 		currentOptions.stylesInListNumbers = false;
+
+		return;
 	}
 
 	if (name == "readable") {
@@ -51,6 +59,8 @@ void setProfile(const std::string &name) {
 		currentOptions.italic = true;
 		currentOptions.stylesInHeadingNumbers = false;
 		currentOptions.stylesInListNumbers = false;
+
+		return;
 	}
 
 	if (name == "parseable") {
@@ -63,7 +73,12 @@ void setProfile(const std::string &name) {
 		currentOptions.italic = true;
 		currentOptions.stylesInHeadingNumbers = false;
 		currentOptions.stylesInListNumbers = false;
+
+		return;
 	}
+
+	std::cerr << "Unknown profile: " << name << std::endl;
+	throw 50;
 }
 
 Options &options() {

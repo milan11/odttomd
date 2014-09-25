@@ -8,9 +8,11 @@
 #include "options.h"
 #include "styles.h"
 
-void main_inner(const char *inputFile) {
+void main_inner(const std::string &inputFile, const std::string &profile) {
+	::setProfile(profile);
+
 	int err = 0;
-	zip *z = ::zip_open(inputFile, 0, &err);
+	zip *z = ::zip_open(inputFile.c_str(), 0, &err);
 	if (z == nullptr)
 		throw 2;
 
@@ -48,7 +50,7 @@ int main(int argc, char *argv[]) {
 	po::options_description desc("Usage");
 	desc.add_options()
 		("help", "shows usage")
-		("odt_file", po::value<std::string>(), "input ODT (OpenDocument Text) file")
+		("odt_file", po::value<std::string>()->required(), "input ODT (OpenDocument Text) file")
 		("profile", po::value<std::string>()->default_value("standard"), "output profile")
 	;
 
@@ -71,12 +73,8 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	if (vm.count("profile")) {
-		::setProfile(vm["profile"].as<std::string>());
-	}
-
 	try {
-		::main_inner(vm["odt_file"].as<std::string>().c_str());
+		::main_inner(vm["odt_file"].as<std::string>(), vm["profile"].as<std::string>());
 
 		return 0;
 	} catch (int &result) {
