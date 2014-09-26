@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 struct Options {
 	bool headingNumberFormats = false;
@@ -14,5 +15,7 @@ struct Options {
 	bool stylesInListNumbers = false;
 };
 
+void initProfiles();
+std::vector<std::string> getAvailableProfiles();
 void setProfile(const std::string &name);
-Options &options();
+const Options &options();

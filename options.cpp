@@ -1,86 +1,101 @@
 #include "options.h"
 
 #include <iostream>
+#include <map>
+
+using Profiles = std::vector<std::pair<std::string, Options> >;
+Profiles profiles;
 
 Options currentOptions;
 
+void initProfiles() {
+	{
+		profiles.push_back(std::make_pair("standard", Options()));
+		Options &options = profiles.back().second;
+		options.headingNumberFormats = true;
+		options.listNumberFormats = false;
+		options.escapeDotInHeadingNumbers = false;
+		options.escapeDotInListNumbers = false;
+		options.escapeDotInText = false;
+		options.bold = true;
+		options.italic = true;
+		options.stylesInHeadingNumbers = true;
+		options.stylesInListNumbers = false;
+	}
+	{
+		profiles.push_back(std::make_pair("github", Options()));
+		Options &options = profiles.back().second;
+		options.headingNumberFormats = true;
+		options.listNumberFormats = false;
+		options.escapeDotInHeadingNumbers = false;
+		options.escapeDotInListNumbers = false;
+		options.escapeDotInText = false;
+		options.bold = true;
+		options.italic = true;
+		options.stylesInHeadingNumbers = true;
+		options.stylesInListNumbers = false;
+	}
+	{
+		profiles.push_back(std::make_pair("plain_text", Options()));
+		Options &options = profiles.back().second;
+		options.headingNumberFormats = true;
+		options.listNumberFormats = true;
+		options.escapeDotInHeadingNumbers = false;
+		options.escapeDotInListNumbers = false;
+		options.escapeDotInText = false;
+		options.bold = false;
+		options.italic = false;
+		options.stylesInHeadingNumbers = false;
+		options.stylesInListNumbers = false;
+	}
+	{
+		profiles.push_back(std::make_pair("readable", Options()));
+		Options &options = profiles.back().second;
+		options.headingNumberFormats = true;
+		options.listNumberFormats = false;
+		options.escapeDotInHeadingNumbers = false;
+		options.escapeDotInListNumbers = false;
+		options.escapeDotInText = false;
+		options.bold = true;
+		options.italic = true;
+		options.stylesInHeadingNumbers = false;
+		options.stylesInListNumbers = false;
+	}
+	{
+		profiles.push_back(std::make_pair("parseable", Options()));
+		Options &options = profiles.back().second;
+		options.headingNumberFormats = false;
+		options.listNumberFormats = false;
+		options.escapeDotInHeadingNumbers = false;
+		options.escapeDotInListNumbers = false;
+		options.escapeDotInText = true;
+		options.bold = true;
+		options.italic = true;
+		options.stylesInHeadingNumbers = false;
+		options.stylesInListNumbers = false;
+	}
+}
+
+std::vector<std::string> getAvailableProfiles() {
+	std::vector<std::string> result;
+	result.reserve(profiles.size());
+	for (auto &kv : profiles) {
+		result.push_back(kv.first);
+	}
+	return result;
+}
+
 void setProfile(const std::string &name) {
-	currentOptions = Options();
-
-	if (name == "standard") {
-		currentOptions.headingNumberFormats = true;
-		currentOptions.listNumberFormats = false;
-		currentOptions.escapeDotInHeadingNumbers = false;
-		currentOptions.escapeDotInListNumbers = false;
-		currentOptions.escapeDotInText = false;
-		currentOptions.bold = true;
-		currentOptions.italic = true;
-		currentOptions.stylesInHeadingNumbers = true;
-		currentOptions.stylesInListNumbers = false;
-
-		return;
+	for (auto &kv : profiles) {
+		if (kv.first == name) {
+			currentOptions = kv.second;
+			return;
+		}
 	}
-
-	if (name == "github") {
-		currentOptions.headingNumberFormats = true;
-		currentOptions.listNumberFormats = false;
-		currentOptions.escapeDotInHeadingNumbers = false;
-		currentOptions.escapeDotInListNumbers = false;
-		currentOptions.escapeDotInText = false;
-		currentOptions.bold = true;
-		currentOptions.italic = true;
-		currentOptions.stylesInHeadingNumbers = true;
-		currentOptions.stylesInListNumbers = false;
-
-		return;
-	}
-
-	if (name == "plain_text") {
-		currentOptions.headingNumberFormats = true;
-		currentOptions.listNumberFormats = true;
-		currentOptions.escapeDotInHeadingNumbers = false;
-		currentOptions.escapeDotInListNumbers = false;
-		currentOptions.escapeDotInText = false;
-		currentOptions.bold = false;
-		currentOptions.italic = false;
-		currentOptions.stylesInHeadingNumbers = false;
-		currentOptions.stylesInListNumbers = false;
-
-		return;
-	}
-
-	if (name == "readable") {
-		currentOptions.headingNumberFormats = true;
-		currentOptions.listNumberFormats = false;
-		currentOptions.escapeDotInHeadingNumbers = false;
-		currentOptions.escapeDotInListNumbers = false;
-		currentOptions.escapeDotInText = false;
-		currentOptions.bold = true;
-		currentOptions.italic = true;
-		currentOptions.stylesInHeadingNumbers = false;
-		currentOptions.stylesInListNumbers = false;
-
-		return;
-	}
-
-	if (name == "parseable") {
-		currentOptions.headingNumberFormats = false;
-		currentOptions.listNumberFormats = false;
-		currentOptions.escapeDotInHeadingNumbers = false;
-		currentOptions.escapeDotInListNumbers = false;
-		currentOptions.escapeDotInText = true;
-		currentOptions.bold = true;
-		currentOptions.italic = true;
-		currentOptions.stylesInHeadingNumbers = false;
-		currentOptions.stylesInListNumbers = false;
-
-		return;
-	}
-
 	std::cerr << "Unknown profile: " << name << std::endl;
 	throw 50;
 }
 
-Options &options() {
+const Options &options() {
 	return currentOptions;
 }
