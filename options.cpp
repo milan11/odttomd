@@ -21,6 +21,11 @@ void initProfiles() {
 		options.italic = true;
 		options.stylesInHeadingNumbers = true;
 		options.stylesInListNumbers = false;
+		options.headingNumbersStartValue = true;
+		options.listNumbersStartValue = false;
+		options.headingNumbersLevels = true;
+		options.listNumbersLevels = false;
+		options.advancedBoldItalicNesting = true;
 	}
 	{
 		profiles.push_back(std::make_pair("github", Options()));
@@ -34,6 +39,11 @@ void initProfiles() {
 		options.italic = true;
 		options.stylesInHeadingNumbers = true;
 		options.stylesInListNumbers = false;
+		options.headingNumbersStartValue = true;
+		options.listNumbersStartValue = false;
+		options.headingNumbersLevels = true;
+		options.listNumbersLevels = false;
+		options.advancedBoldItalicNesting = false;
 	}
 	{
 		profiles.push_back(std::make_pair("plain_text", Options()));
@@ -47,6 +57,11 @@ void initProfiles() {
 		options.italic = false;
 		options.stylesInHeadingNumbers = false;
 		options.stylesInListNumbers = false;
+		options.headingNumbersStartValue = true;
+		options.listNumbersStartValue = true;
+		options.headingNumbersLevels = true;
+		options.listNumbersLevels = true;
+		options.advancedBoldItalicNesting = false;
 	}
 	{
 		profiles.push_back(std::make_pair("readable", Options()));
@@ -60,6 +75,11 @@ void initProfiles() {
 		options.italic = true;
 		options.stylesInHeadingNumbers = false;
 		options.stylesInListNumbers = false;
+		options.headingNumbersStartValue = true;
+		options.listNumbersStartValue = false;
+		options.headingNumbersLevels = true;
+		options.listNumbersLevels = false;
+		options.advancedBoldItalicNesting = false;
 	}
 	{
 		profiles.push_back(std::make_pair("parseable", Options()));
@@ -73,6 +93,11 @@ void initProfiles() {
 		options.italic = true;
 		options.stylesInHeadingNumbers = false;
 		options.stylesInListNumbers = false;
+		options.headingNumbersStartValue = false;
+		options.listNumbersStartValue = false;
+		options.headingNumbersLevels = false;
+		options.listNumbersLevels = false;
+		options.advancedBoldItalicNesting = false;
 	}
 }
 

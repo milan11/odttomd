@@ -13,6 +13,11 @@ struct Options {
 	bool italic = false;
 	bool stylesInHeadingNumbers = false;
 	bool stylesInListNumbers = false;
+	bool headingNumbersStartValue = false;
+	bool listNumbersStartValue = false;
+	bool headingNumbersLevels = false;
+	bool listNumbersLevels = false;
+	bool advancedBoldItalicNesting = false;
 };
 
 void initProfiles();

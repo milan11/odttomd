@@ -108,14 +108,24 @@ void popStyle(Context &context) {
 	::writeStyleDiff(oldStyle, context.currentStyles.top());
 }
 
-void fixOutlineLevelStyleForMarkdown(OutlineLevelStyle &style) {
-	if (! style.numFormat.empty()) {
-		style.numFormat = "1";
+void fixOutlineLevelStyleForMarkdown(OutlineLevelStyle &style, const bool numberFormats, const bool startValue, const bool levels) {
+	if (! numberFormats) {
+		if (! style.numFormat.empty()) {
+			style.numFormat = "1";
+		}
+
+		style.numLetterSync = false;
+		style.prefix = "";
+		style.suffix = ".";
 	}
 
-	style.numLetterSync = false;
-	style.prefix = "";
-	style.suffix = ".";
+	if (! startValue) {
+		style.startValue = 1;
+	}
+
+	if (! levels) {
+		style.displayLevels = 1;
+	}
 }
 
 void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
@@ -138,9 +148,7 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 			}
 
 			OutlineLevelStyle outlineLevelStyle = context->stylesContext.styles.getOutlineLevelStyle(level);
-			if (! options().headingNumberFormats) {
-				::fixOutlineLevelStyleForMarkdown(outlineLevelStyle);
-			}
+			::fixOutlineLevelStyleForMarkdown(outlineLevelStyle, options().headingNumberFormats, options().headingNumbersStartValue, options().headingNumbersLevels);
 
 			if (context->currentOutlineNumbering.size() < level) {
 				context->currentOutlineNumbering.push_back(outlineLevelStyle.startValue);
@@ -165,9 +173,7 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 
 			for (uint32_t higherLevel = fromLevel; higherLevel < level; ++higherLevel) {
 				OutlineLevelStyle higherLevelStyle = context->stylesContext.styles.getOutlineLevelStyle(higherLevel);
-				if (! options().headingNumberFormats) {
-					::fixOutlineLevelStyleForMarkdown(higherLevelStyle);
-				}
+				::fixOutlineLevelStyleForMarkdown(higherLevelStyle, options().headingNumberFormats, options().headingNumbersStartValue, options().headingNumbersLevels);
 				if (! higherLevelStyle.numFormat.empty()) {
 					::writeEscapedString(numbering::createNumber(context->currentOutlineNumbering[higherLevel - 1], higherLevelStyle.numFormat, higherLevelStyle.numLetterSync));
 				}
@@ -228,9 +234,7 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 
 		if (context->stylesContext.styles.getListStyle(context->currentLists.top().listStyleName).isNumbered(level)) {
 			OutlineLevelStyle outlineLevelStyle = context->stylesContext.styles.getListStyle(context->currentLists.top().listStyleName).getOutlineLevelStyle(level);
-			if (! options().listNumberFormats) {
-				::fixOutlineLevelStyleForMarkdown(outlineLevelStyle);
-			}
+			::fixOutlineLevelStyleForMarkdown(outlineLevelStyle, options().listNumberFormats, options().listNumbersStartValue, options().listNumbersLevels);
 
 			uint32_t currentNumber = context->currentLists.top().currentNumbering.back();
 
@@ -249,9 +253,8 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 
 			for (uint32_t higherLevel = fromLevel; higherLevel < level; ++higherLevel) {
 				OutlineLevelStyle higherLevelStyle = context->stylesContext.styles.getListStyle(context->currentLists.top().listStyleName).getOutlineLevelStyle(higherLevel);
-				if (! options().listNumberFormats) {
-					::fixOutlineLevelStyleForMarkdown(higherLevelStyle);
-				}
+				::fixOutlineLevelStyleForMarkdown(higherLevelStyle, options().listNumberFormats, options().listNumbersStartValue, options().listNumbersLevels);
+
 				if (! higherLevelStyle.numFormat.empty()) {
 					::writeEscapedString(numbering::createNumber(context->currentLists.top().currentNumbering[higherLevel - 1], higherLevelStyle.numFormat, higherLevelStyle.numLetterSync));
 				}
