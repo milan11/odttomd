@@ -314,11 +314,12 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 					if (! higherLevelStyle.numFormat.empty()) {
 						const std::string numberText = numbering::createNumber(context->currentOutlineNumbering[higherLevel - 1], higherLevelStyle.numFormat, higherLevelStyle.numLetterSync);
 						::writeEscaped(*context, numberText);
+
+						if (! options().escapeDotInHeadingNumbers)
+							::writeRaw(*context, '.');
+						else
+							::writeEscaped(*context, '.');
 					}
-					if (! options().escapeDotInHeadingNumbers)
-						::writeRaw(*context, '.');
-					else
-						::writeEscaped(*context, '.');
 				}
 				if (! outlineLevelStyle.numFormat.empty()) {
 					const std::string numberText = numbering::createNumber(currentNumber, outlineLevelStyle.numFormat, outlineLevelStyle.numLetterSync);
@@ -398,11 +399,12 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 
 				if (! higherLevelStyle.numFormat.empty()) {
 					::writeEscaped(*context, numbering::createNumber(context->currentLists.top().currentNumbering[higherLevel - 1], higherLevelStyle.numFormat, higherLevelStyle.numLetterSync));
+
+					if (! options().escapeDotInListNumbers)
+						::writeRaw(*context, '.');
+					else
+						::writeEscaped(*context, '.');
 				}
-				if (! options().escapeDotInListNumbers)
-					::writeRaw(*context, '.');
-				else
-					::writeEscaped(*context, '.');
 			}
 			if (! outlineLevelStyle.numFormat.empty()) {
 				::writeEscaped(*context, numbering::createNumber(currentNumber, outlineLevelStyle.numFormat, outlineLevelStyle.numLetterSync));
