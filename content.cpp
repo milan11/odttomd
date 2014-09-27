@@ -41,11 +41,41 @@ public:
 
 	std::stack<List> currentLists;
 
+	uint32_t remainingSpacesCount = 0;
+	bool lastWasWhitespace = true;
+	bool lastWasStyleEnd = false;
+
 };
+
+void writeRemainingSpaces(Context &context) {
+	std::cout << std::string(context.remainingSpacesCount, ' ');
+
+	if (context.remainingSpacesCount > 0) {
+		context.lastWasStyleEnd = false;
+	}
+
+	context.remainingSpacesCount = 0;
+}
+
+void writeSpaceBeforeStyleIfNeeded(Context &context) {
+	if ((! options().boldItalicBeginInsideOfWords) && (! context.lastWasWhitespace)) {
+		std::cout << ' ';
+		context.lastWasWhitespace = true;
+	}
+}
+
+void writeSpaceAfterStyleIfNeeded(Context &context, const char currentChar) {
+	if ((! options().boldItalicEndInsideOfWords) && (context.lastWasStyleEnd)) {
+		if (currentChar != ' ' && currentChar != '\n')
+			std::cout << ' ';
+	}
+
+	context.lastWasStyleEnd = false;
+}
 
 void writeStyleDiff(Context &context, const Style &oldStyle, const Style &newStyle) {
 	const bool enablingBold = options().bold && (!oldStyle.bold.get_value_or(false) && newStyle.bold.get_value_or(false));
-	const bool disablingBold = options().bold && (oldStyle.bold.get_value_or(false) && !newStyle.bold.get_value_or(false));
+	bool disablingBold = options().bold && (oldStyle.bold.get_value_or(false) && !newStyle.bold.get_value_or(false));
 	const bool enablingItalic = options().italic && (!oldStyle.italic.get_value_or(false) && newStyle.italic.get_value_or(false));
 	const bool disablingItalic = options().italic && (oldStyle.italic.get_value_or(false) && !newStyle.italic.get_value_or(false));
 
@@ -53,12 +83,22 @@ void writeStyleDiff(Context &context, const Style &oldStyle, const Style &newSty
 	const bool inBold = oldStyle.bold.get_value_or(false) && (! disablingBold);
 
 	if (disablingItalic) {
-		if ((context.outerIsItalic) && (inBold)) {
+		if ((context.outerIsItalic) && (inBold || disablingBold)) {
 			std::cout << "**";
+			disablingBold = false;
 		}
+
 		std::cout << "_";
+		context.lastWasStyleEnd = true;
+
 		if ((context.outerIsItalic) && (inBold)) {
+			::writeRemainingSpaces(context);
+			::writeSpaceBeforeStyleIfNeeded(context);
+
 			std::cout << "**";
+			context.lastWasStyleEnd = false;
+
+			context.outerIsItalic = false;
 		}
 	}
 
@@ -66,9 +106,18 @@ void writeStyleDiff(Context &context, const Style &oldStyle, const Style &newSty
 		if ((! context.outerIsItalic) && (inItalic)) {
 			std::cout << "_";
 		}
+
 		std::cout << "**";
+		context.lastWasStyleEnd = true;
+
 		if ((! context.outerIsItalic) && (inItalic)) {
+			::writeRemainingSpaces(context);
+			::writeSpaceBeforeStyleIfNeeded(context);
+
 			std::cout << "_";
+			context.lastWasStyleEnd = false;
+
+			context.outerIsItalic = true;
 		}
 	}
 
@@ -76,14 +125,22 @@ void writeStyleDiff(Context &context, const Style &oldStyle, const Style &newSty
 		if ((! inItalic) || enablingItalic)
 			context.outerIsItalic = false;
 
+		::writeRemainingSpaces(context);
+		::writeSpaceBeforeStyleIfNeeded(context);
+
 		std::cout << "**";
+		context.lastWasStyleEnd = false;
 	}
 
 	if (enablingItalic) {
 		if ((! inBold) && (! enablingBold))
 			context.outerIsItalic = true;
 
+		::writeRemainingSpaces(context);
+		::writeSpaceBeforeStyleIfNeeded(context);
+
 		std::cout << "_";
+		context.lastWasStyleEnd = false;
 	}
 }
 
@@ -92,48 +149,55 @@ void ensureStyleApplied(Context &context) {
 	context.currentStyle = context.currentStyles.top();
 }
 
-void writeEscaped(Context &context, const char c) {
-	ensureStyleApplied(context);
+void setLastWasWhitespace(Context &context, const char c) {
+	context.lastWasWhitespace = (c == ' ' || c == '\n');
+}
 
-	switch (c) {
-		case '<':
-			std::cout << "&lt;";
-			break;
-		case '>':
-			std::cout << "&gt;";
-			break;
-		case '.':
-			if (options().escapeDotInText)
+void writeEscaped(Context &context, const char c) {
+	if ((c == ' ') && (! options().edgeSpacesInsideBoldItalic)) {
+		++(context.remainingSpacesCount);
+	} else {
+		ensureStyleApplied(context);
+
+		::writeRemainingSpaces(context);
+		::writeSpaceAfterStyleIfNeeded(context, c);
+
+		switch (c) {
+			case '<':
+				std::cout << "&lt;";
+				break;
+			case '>':
+				std::cout << "&gt;";
+				break;
+			case '.':
+				if (options().escapeDotInText)
+					std::cout << '\\';
+				std::cout << c;
+				break;
+			case '\\':
+			case '`':
+			case '*':
+			case '_':
+			case '{':
+			case '}':
+			case '[':
+			case ']':
+			case '(':
+			case ')':
+			case '#':
+			case '+':
+			case '-':
+			case '!':
 				std::cout << '\\';
-			std::cout << c;
-			break;
-		case '\\':
-		case '`':
-		case '*':
-		case '_':
-		case '{':
-		case '}':
-		case '[':
-		case ']':
-		case '(':
-		case ')':
-		case '#':
-		case '+':
-		case '-':
-		case '!':
-			std::cout << '\\';
-		default:
-			std::cout << c;
+			default:
+				std::cout << c;
+		}
 	}
+
+	::setLastWasWhitespace(context, c);
 }
 
 void writeEscaped(Context &context, const std::string &str) {
-	if (str.empty()) {
-		return;
-	}
-
-	ensureStyleApplied(context);
-
 	for (const char &c : str) {
 		::writeEscaped(context, c);
 	}
@@ -142,17 +206,18 @@ void writeEscaped(Context &context, const std::string &str) {
 void writeRaw(Context &context, const char c) {
 	ensureStyleApplied(context);
 
+	::writeRemainingSpaces(context);
+	::writeSpaceAfterStyleIfNeeded(context, c);
+
 	std::cout << c;
+
+	::setLastWasWhitespace(context, c);
 }
 
 void writeRaw(Context &context, const std::string &str) {
-	if (str.empty()) {
-		return;
+	for (const char &c : str) {
+		::writeRaw(context, c);
 	}
-
-	ensureStyleApplied(context);
-
-	std::cout << str;
 }
 
 void pushStyle(Context &context, const Style &style) {

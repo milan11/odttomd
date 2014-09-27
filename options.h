@@ -17,7 +17,9 @@ struct Options {
 	bool listNumbersStartValue = false;
 	bool headingNumbersLevels = false;
 	bool listNumbersLevels = false;
-	bool advancedBoldItalicNesting = false;
+	bool edgeSpacesInsideBoldItalic = false;
+	bool boldItalicBeginInsideOfWords = false;
+	bool boldItalicEndInsideOfWords = false;
 	bool linksToHeadings = false;
 };
 

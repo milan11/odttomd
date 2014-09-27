@@ -25,7 +25,9 @@ void initProfiles() {
 		options.listNumbersStartValue = false;
 		options.headingNumbersLevels = true;
 		options.listNumbersLevels = false;
-		options.advancedBoldItalicNesting = true;
+		options.edgeSpacesInsideBoldItalic = true;
+		options.boldItalicBeginInsideOfWords = true;
+		options.boldItalicEndInsideOfWords = true;
 		options.linksToHeadings = false;
 	}
 	{
@@ -44,7 +46,9 @@ void initProfiles() {
 		options.listNumbersStartValue = false;
 		options.headingNumbersLevels = true;
 		options.listNumbersLevels = false;
-		options.advancedBoldItalicNesting = false;
+		options.edgeSpacesInsideBoldItalic = true;
+		options.boldItalicBeginInsideOfWords = false;
+		options.boldItalicEndInsideOfWords = true;
 		options.linksToHeadings = true;
 	}
 	{
@@ -63,7 +67,9 @@ void initProfiles() {
 		options.listNumbersStartValue = true;
 		options.headingNumbersLevels = true;
 		options.listNumbersLevels = true;
-		options.advancedBoldItalicNesting = false;
+		options.edgeSpacesInsideBoldItalic = true;
+		options.boldItalicBeginInsideOfWords = true;
+		options.boldItalicEndInsideOfWords = true;
 		options.linksToHeadings = false;
 	}
 	{
@@ -82,7 +88,9 @@ void initProfiles() {
 		options.listNumbersStartValue = false;
 		options.headingNumbersLevels = true;
 		options.listNumbersLevels = false;
-		options.advancedBoldItalicNesting = false;
+		options.edgeSpacesInsideBoldItalic = true;
+		options.boldItalicBeginInsideOfWords = true;
+		options.boldItalicEndInsideOfWords = true;
 		options.linksToHeadings = false;
 	}
 	{
@@ -101,7 +109,9 @@ void initProfiles() {
 		options.listNumbersStartValue = false;
 		options.headingNumbersLevels = false;
 		options.listNumbersLevels = false;
-		options.advancedBoldItalicNesting = false;
+		options.edgeSpacesInsideBoldItalic = true;
+		options.boldItalicBeginInsideOfWords = true;
+		options.boldItalicEndInsideOfWords = true;
 		options.linksToHeadings = false;
 	}
 }
