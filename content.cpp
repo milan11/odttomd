@@ -342,7 +342,8 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 		uint32_t level = static_cast<uint32_t>(context->currentLists.top().currentNumbering.size()) + 1;
 
 		if (context->stylesContext.styles.getListStyle(context->currentLists.top().listStyleName).isNumbered(level)) {
-			const OutlineLevelStyle &outlineLevelStyle = context->stylesContext.styles.getListStyle(context->currentLists.top().listStyleName).getOutlineLevelStyle(level);
+			OutlineLevelStyle outlineLevelStyle = context->stylesContext.styles.getListStyle(context->currentLists.top().listStyleName).getOutlineLevelStyle(level);
+			::fixOutlineLevelStyleForMarkdown(outlineLevelStyle, options().listNumberFormats, options().listNumbersStartValue, options().listNumbersLevels);
 			context->currentLists.top().currentNumbering.push_back(outlineLevelStyle.startValue);
 		} else {
 			context->currentLists.top().currentNumbering.push_back(0);
