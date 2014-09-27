@@ -29,6 +29,10 @@ void initProfiles() {
 		options.boldItalicBeginInsideOfWords = true;
 		options.boldItalicEndInsideOfWords = true;
 		options.linksToHeadings = false;
+		options.underlineHeading1 = true;
+		options.underlineHeading2 = true;
+		options.closeHeadings = false;
+		options.closeHeadingsShort = false;
 	}
 	{
 		profiles.push_back(std::make_pair("github", Options()));
@@ -50,6 +54,10 @@ void initProfiles() {
 		options.boldItalicBeginInsideOfWords = false;
 		options.boldItalicEndInsideOfWords = true;
 		options.linksToHeadings = true;
+		options.underlineHeading1 = true;
+		options.underlineHeading2 = true;
+		options.closeHeadings = false;
+		options.closeHeadingsShort = false;
 	}
 	{
 		profiles.push_back(std::make_pair("plain_text", Options()));
@@ -71,6 +79,10 @@ void initProfiles() {
 		options.boldItalicBeginInsideOfWords = true;
 		options.boldItalicEndInsideOfWords = true;
 		options.linksToHeadings = false;
+		options.underlineHeading1 = true;
+		options.underlineHeading2 = true;
+		options.closeHeadings = true;
+		options.closeHeadingsShort = false;
 	}
 	{
 		profiles.push_back(std::make_pair("readable", Options()));
@@ -92,6 +104,10 @@ void initProfiles() {
 		options.boldItalicBeginInsideOfWords = true;
 		options.boldItalicEndInsideOfWords = true;
 		options.linksToHeadings = false;
+		options.underlineHeading1 = true;
+		options.underlineHeading2 = true;
+		options.closeHeadings = true;
+		options.closeHeadingsShort = false;
 	}
 	{
 		profiles.push_back(std::make_pair("parseable", Options()));
@@ -113,6 +129,10 @@ void initProfiles() {
 		options.boldItalicBeginInsideOfWords = true;
 		options.boldItalicEndInsideOfWords = true;
 		options.linksToHeadings = false;
+		options.underlineHeading1 = false;
+		options.underlineHeading2 = false;
+		options.closeHeadings = false;
+		options.closeHeadingsShort = false;
 	}
 }
 

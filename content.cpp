@@ -1,7 +1,6 @@
 #include "content.h"
 
 #include <algorithm>
-#include <iostream>
 #include <stack>
 #include <vector>
 #include <boost/scope_exit.hpp>
@@ -10,6 +9,7 @@
 #include "numbering.h"
 #include "options.h"
 #include "util.h"
+#include "writer.h"
 
 namespace {
 
@@ -25,12 +25,14 @@ class Context {
 public:
 	Context(StylesContext &stylesContext)
 		: stylesContext(stylesContext)
+		, w(std::cout)
 	{
 		currentStyles.push(Style());
 	}
 
 public:
 	StylesContext stylesContext;
+	Writer w;
 
 	std::stack<Style> currentStyles;
 	Style currentStyle;
@@ -45,10 +47,12 @@ public:
 	bool lastWasWhitespace = true;
 	bool lastWasStyleEnd = false;
 
+	char underlineHeadingUsing = 0;
+	uint32_t currentHeadingOutlineLevel = 0;
 };
 
 void writeRemainingSpaces(Context &context) {
-	std::cout << std::string(context.remainingSpacesCount, ' ');
+	context.w.write(std::string(context.remainingSpacesCount, ' '));
 
 	if (context.remainingSpacesCount > 0) {
 		context.lastWasStyleEnd = false;
@@ -59,7 +63,7 @@ void writeRemainingSpaces(Context &context) {
 
 void writeSpaceBeforeStyleIfNeeded(Context &context) {
 	if ((! options().boldItalicBeginInsideOfWords) && (! context.lastWasWhitespace)) {
-		std::cout << ' ';
+		context.w.write(' ');
 		context.lastWasWhitespace = true;
 	}
 }
@@ -67,7 +71,7 @@ void writeSpaceBeforeStyleIfNeeded(Context &context) {
 void writeSpaceAfterStyleIfNeeded(Context &context, const char currentChar) {
 	if ((! options().boldItalicEndInsideOfWords) && (context.lastWasStyleEnd)) {
 		if (currentChar != ' ' && currentChar != '\n')
-			std::cout << ' ';
+			context.w.write(' ');
 	}
 
 	context.lastWasStyleEnd = false;
@@ -84,18 +88,18 @@ void writeStyleDiff(Context &context, const Style &oldStyle, const Style &newSty
 
 	if (disablingItalic) {
 		if ((context.outerIsItalic) && (inBold || disablingBold)) {
-			std::cout << "**";
+			context.w.write("**");
 			disablingBold = false;
 		}
 
-		std::cout << "_";
+		context.w.write("_");
 		context.lastWasStyleEnd = true;
 
 		if ((context.outerIsItalic) && (inBold)) {
 			::writeRemainingSpaces(context);
 			::writeSpaceBeforeStyleIfNeeded(context);
 
-			std::cout << "**";
+			context.w.write("**");
 			context.lastWasStyleEnd = false;
 
 			context.outerIsItalic = false;
@@ -104,17 +108,17 @@ void writeStyleDiff(Context &context, const Style &oldStyle, const Style &newSty
 
 	if (disablingBold) {
 		if ((! context.outerIsItalic) && (inItalic)) {
-			std::cout << "_";
+			context.w.write("_");
 		}
 
-		std::cout << "**";
+		context.w.write("**");
 		context.lastWasStyleEnd = true;
 
 		if ((! context.outerIsItalic) && (inItalic)) {
 			::writeRemainingSpaces(context);
 			::writeSpaceBeforeStyleIfNeeded(context);
 
-			std::cout << "_";
+			context.w.write("_");
 			context.lastWasStyleEnd = false;
 
 			context.outerIsItalic = true;
@@ -128,7 +132,7 @@ void writeStyleDiff(Context &context, const Style &oldStyle, const Style &newSty
 		::writeRemainingSpaces(context);
 		::writeSpaceBeforeStyleIfNeeded(context);
 
-		std::cout << "**";
+		context.w.write("**");
 		context.lastWasStyleEnd = false;
 	}
 
@@ -139,7 +143,7 @@ void writeStyleDiff(Context &context, const Style &oldStyle, const Style &newSty
 		::writeRemainingSpaces(context);
 		::writeSpaceBeforeStyleIfNeeded(context);
 
-		std::cout << "_";
+		context.w.write("_");
 		context.lastWasStyleEnd = false;
 	}
 }
@@ -164,15 +168,15 @@ void writeEscaped(Context &context, const char c) {
 
 		switch (c) {
 			case '<':
-				std::cout << "&lt;";
+				context.w.write("&lt;");
 				break;
 			case '>':
-				std::cout << "&gt;";
+				context.w.write("&gt;");
 				break;
 			case '.':
 				if (options().escapeDotInText)
-					std::cout << '\\';
-				std::cout << c;
+					context.w.write('\\');
+				context.w.write(c);
 				break;
 			case '\\':
 			case '`':
@@ -188,9 +192,9 @@ void writeEscaped(Context &context, const char c) {
 			case '+':
 			case '-':
 			case '!':
-				std::cout << '\\';
+				context.w.write('\\');
 			default:
-				std::cout << c;
+				context.w.write(c);
 		}
 	}
 
@@ -209,7 +213,7 @@ void writeRaw(Context &context, const char c) {
 	::writeRemainingSpaces(context);
 	::writeSpaceAfterStyleIfNeeded(context, c);
 
-	std::cout << c;
+	context.w.write(c);
 
 	::setLastWasWhitespace(context, c);
 }
@@ -255,11 +259,24 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 
 	if (! ::strcmp(name, "text:h")) {
 		uint32_t level = ::attrUint(atts, "text:outline-level", 0);
-
-		::writeRaw(*context, std::string(std::max(level, static_cast<uint32_t>(1)), '#'));
-		::writeRaw(*context, ' ');
+		context->currentHeadingOutlineLevel = level;
 
 		if (level > 0) {
+			context->underlineHeadingUsing = '\0';
+			if (options().underlineHeading1 && level == 1) {
+				context->underlineHeadingUsing = '=';
+			}
+			if (options().underlineHeading2 && level == 2) {
+				context->underlineHeadingUsing = '-';
+			}
+
+			if (context->underlineHeadingUsing == '\0') {
+				::writeRaw(*context, std::string(level, '#'));
+				::writeRaw(*context, ' ');
+			}
+
+			context->w.resetCodePointsCount();
+
 			while (context->currentOutlineNumbering.size() > level) {
 				context->currentOutlineNumbering.pop_back();
 			}
@@ -277,46 +294,50 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 				++(context->currentOutlineNumbering.back());
 			}
 
-			uint32_t currentNumber = context->currentOutlineNumbering.back();
+			if (! outlineLevelStyle.numFormat.empty()) {
+				uint32_t currentNumber = context->currentOutlineNumbering.back();
 
-			uint32_t fromLevel = 1;
-			if (outlineLevelStyle.displayLevels <= level) {
-				fromLevel = 1 + level - outlineLevelStyle.displayLevels;
-			} else {
-				std::cerr << "More levels to display than the current level: " << outlineLevelStyle.displayLevels << " > " << level << std::endl;
-			}
-
-			if (options().stylesInHeadingNumbers && (! outlineLevelStyle.styleName.empty())) {
-				::pushStyle(*context, context->stylesContext.styles.getMergedStyle(outlineLevelStyle.styleName));
-			}
-
-			::writeEscaped(*context, outlineLevelStyle.prefix);
-
-			for (uint32_t higherLevel = fromLevel; higherLevel < level; ++higherLevel) {
-				OutlineLevelStyle higherLevelStyle = context->stylesContext.styles.getOutlineLevelStyle(higherLevel);
-				::fixOutlineLevelStyleForMarkdown(higherLevelStyle, options().headingNumberFormats, options().headingNumbersStartValue, options().headingNumbersLevels);
-				if (! higherLevelStyle.numFormat.empty()) {
-					::writeEscaped(*context, numbering::createNumber(context->currentOutlineNumbering[higherLevel - 1], higherLevelStyle.numFormat, higherLevelStyle.numLetterSync));
+				uint32_t fromLevel = 1;
+				if (outlineLevelStyle.displayLevels <= level) {
+					fromLevel = 1 + level - outlineLevelStyle.displayLevels;
+				} else {
+					std::cerr << "More levels to display than the current level: " << outlineLevelStyle.displayLevels << " > " << level << std::endl;
 				}
-				if (! options().escapeDotInHeadingNumbers)
+
+				if (options().stylesInHeadingNumbers && (! outlineLevelStyle.styleName.empty())) {
+					::pushStyle(*context, context->stylesContext.styles.getMergedStyle(outlineLevelStyle.styleName));
+				}
+
+				::writeEscaped(*context, outlineLevelStyle.prefix);
+
+				for (uint32_t higherLevel = fromLevel; higherLevel < level; ++higherLevel) {
+					OutlineLevelStyle higherLevelStyle = context->stylesContext.styles.getOutlineLevelStyle(higherLevel);
+					::fixOutlineLevelStyleForMarkdown(higherLevelStyle, options().headingNumberFormats, options().headingNumbersStartValue, options().headingNumbersLevels);
+					if (! higherLevelStyle.numFormat.empty()) {
+						const std::string numberText = numbering::createNumber(context->currentOutlineNumbering[higherLevel - 1], higherLevelStyle.numFormat, higherLevelStyle.numLetterSync);
+						::writeEscaped(*context, numberText);
+					}
+					if (! options().escapeDotInHeadingNumbers)
+						::writeRaw(*context, '.');
+					else
+						::writeEscaped(*context, '.');
+				}
+				if (! outlineLevelStyle.numFormat.empty()) {
+					const std::string numberText = numbering::createNumber(currentNumber, outlineLevelStyle.numFormat, outlineLevelStyle.numLetterSync);
+					::writeEscaped(*context, numberText);
+				}
+
+				if ((! options().escapeDotInHeadingNumbers) && outlineLevelStyle.suffix == ".")
 					::writeRaw(*context, '.');
 				else
-					::writeEscaped(*context, '.');
-			}
-			if (! outlineLevelStyle.numFormat.empty()) {
-				::writeEscaped(*context, numbering::createNumber(currentNumber, outlineLevelStyle.numFormat, outlineLevelStyle.numLetterSync));
-			}
+					::writeEscaped(*context, outlineLevelStyle.suffix);
 
-			if ((! options().escapeDotInHeadingNumbers) && outlineLevelStyle.suffix == ".")
-				::writeRaw(*context, '.');
-			else
-				::writeEscaped(*context, outlineLevelStyle.suffix);
+				if (options().stylesInHeadingNumbers && (! outlineLevelStyle.styleName.empty())) {
+					::popStyle(*context);
+				}
 
-			if (options().stylesInHeadingNumbers && (! outlineLevelStyle.styleName.empty())) {
-				::popStyle(*context);
+				::writeRaw(*context, ' ');
 			}
-
-			::writeRaw(*context, ' ');
 		}
 	}
 	if (! ::strcmp(name, "text:p")) {
@@ -416,6 +437,18 @@ void onEnd(void *userData, const XML_Char *name) {
 	::processStyles_onEnd(&context->stylesContext, name);
 
 	if (! ::strcmp(name, "text:h")) {
+		if (context->underlineHeadingUsing == '\0') {
+			if (options().closeHeadings || options().closeHeadingsShort) {
+				const uint32_t level = context->currentHeadingOutlineLevel;
+
+				::writeRaw(*context, ' ');
+				::writeRaw(*context, std::string(options().closeHeadingsShort ? 1 : level, '#'));
+			}
+		}
+		if (context->underlineHeadingUsing != '\0') {
+			::writeRaw(*context, '\n');
+			::writeRaw(*context, std::string(context->w.getCodePointsCount() - 1, context->underlineHeadingUsing));
+		}
 		::writeRaw(*context, '\n');
 		::writeRaw(*context, '\n');
 	}

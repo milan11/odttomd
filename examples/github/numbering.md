@@ -1,14 +1,20 @@
-# 1 Default numbering
+1 Default numbering
+===================
 
-# 2 Heading
+2 Heading
+=========
 
-# 3 Heading
+3 Heading
+=========
 
-## a Number format changed
+a Number format changed
+-----------------------
 
-## b Heading
+b Heading
+---------
 
-## c Heading
+c Heading
+---------
 
 ### &gt;1 Prefix
 

@@ -21,6 +21,10 @@ struct Options {
 	bool boldItalicBeginInsideOfWords = false;
 	bool boldItalicEndInsideOfWords = false;
 	bool linksToHeadings = false;
+	bool underlineHeading1 = false;
+	bool underlineHeading2 = false;
+	bool closeHeadings = false;
+	bool closeHeadingsShort = false;
 };
 
 void initProfiles();
