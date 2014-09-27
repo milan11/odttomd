@@ -16,7 +16,8 @@ void initProfiles() {
 		options.listNumberFormats = false;
 		options.escapeDotInHeadingNumbers = false;
 		options.escapeDotInListNumbers = false;
-		options.escapeDotInText = false;
+		options.escapeInText = "\\`*_{}[]()#+-!";
+		options.entitiesInText = "<>";
 		options.bold = true;
 		options.italic = true;
 		options.stylesInHeadingNumbers = true;
@@ -41,7 +42,8 @@ void initProfiles() {
 		options.listNumberFormats = false;
 		options.escapeDotInHeadingNumbers = false;
 		options.escapeDotInListNumbers = false;
-		options.escapeDotInText = false;
+		options.escapeInText = "\\`*_{}[]()#+-!";
+		options.entitiesInText = "<>";
 		options.bold = true;
 		options.italic = true;
 		options.stylesInHeadingNumbers = true;
@@ -66,7 +68,8 @@ void initProfiles() {
 		options.listNumberFormats = true;
 		options.escapeDotInHeadingNumbers = false;
 		options.escapeDotInListNumbers = false;
-		options.escapeDotInText = false;
+		options.escapeInText = "";
+		options.entitiesInText = "";
 		options.bold = false;
 		options.italic = false;
 		options.stylesInHeadingNumbers = false;
@@ -91,7 +94,8 @@ void initProfiles() {
 		options.listNumberFormats = false;
 		options.escapeDotInHeadingNumbers = false;
 		options.escapeDotInListNumbers = false;
-		options.escapeDotInText = false;
+		options.escapeInText = "\\`*_{}[]()#+-!";
+		options.entitiesInText = "";
 		options.bold = true;
 		options.italic = true;
 		options.stylesInHeadingNumbers = false;
@@ -116,7 +120,7 @@ void initProfiles() {
 		options.listNumberFormats = false;
 		options.escapeDotInHeadingNumbers = false;
 		options.escapeDotInListNumbers = false;
-		options.escapeDotInText = true;
+		options.escapeInText = "\\`*_{}[]()#+-!.<>";
 		options.bold = true;
 		options.italic = true;
 		options.stylesInHeadingNumbers = false;

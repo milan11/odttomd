@@ -8,7 +8,8 @@ struct Options {
 	bool listNumberFormats = false;
 	bool escapeDotInHeadingNumbers = false;
 	bool escapeDotInListNumbers = false;
-	bool escapeDotInText = false;
+	std::string escapeInText;
+	std::string entitiesInText;
 	bool bold = false;
 	bool italic = false;
 	bool stylesInHeadingNumbers = false;

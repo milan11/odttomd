@@ -166,35 +166,33 @@ void writeEscaped(Context &context, const char c) {
 		::writeRemainingSpaces(context);
 		::writeSpaceAfterStyleIfNeeded(context, c);
 
-		switch (c) {
-			case '<':
-				context.w.write("&lt;");
-				break;
-			case '>':
-				context.w.write("&gt;");
-				break;
-			case '.':
-				if (options().escapeDotInText)
-					context.w.write('\\');
-				context.w.write(c);
-				break;
-			case '\\':
-			case '`':
-			case '*':
-			case '_':
-			case '{':
-			case '}':
-			case '[':
-			case ']':
-			case '(':
-			case ')':
-			case '#':
-			case '+':
-			case '-':
-			case '!':
-				context.w.write('\\');
-			default:
-				context.w.write(c);
+		if (options().escapeInText.find(c) != std::string::npos) {
+			context.w.write('\\');
+			context.w.write(c);
+		}
+		else if (options().entitiesInText.find(c) != std::string::npos) {
+			switch (c) {
+				case '<':
+					context.w.write("&lt;");
+					break;
+				case '>':
+					context.w.write("&gt;");
+					break;
+				case '"':
+					context.w.write("&quot;");
+					break;
+				case '&':
+					context.w.write("&amp;");
+					break;
+				case '\'':
+					context.w.write("&apos;");
+					break;
+				default:
+					context.w.write(c);
+			}
+		}
+		else {
+			context.w.write(c);
 		}
 	}
 

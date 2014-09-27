@@ -16,11 +16,11 @@ b Heading
 c Heading
 ---------
 
-### &gt;1 Prefix ###
+### >1 Prefix ###
 
-### &gt;2 Heading ###
+### >2 Heading ###
 
-### &gt;3 Heading ###
+### >3 Heading ###
 
 #### 1: Suffix ####
 
