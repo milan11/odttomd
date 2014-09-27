@@ -18,6 +18,7 @@ struct Options {
 	bool headingNumbersLevels = false;
 	bool listNumbersLevels = false;
 	bool advancedBoldItalicNesting = false;
+	bool linksToHeadings = false;
 };
 
 void initProfiles();

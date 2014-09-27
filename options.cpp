@@ -26,6 +26,7 @@ void initProfiles() {
 		options.headingNumbersLevels = true;
 		options.listNumbersLevels = false;
 		options.advancedBoldItalicNesting = true;
+		options.linksToHeadings = false;
 	}
 	{
 		profiles.push_back(std::make_pair("github", Options()));
@@ -44,6 +45,7 @@ void initProfiles() {
 		options.headingNumbersLevels = true;
 		options.listNumbersLevels = false;
 		options.advancedBoldItalicNesting = false;
+		options.linksToHeadings = true;
 	}
 	{
 		profiles.push_back(std::make_pair("plain_text", Options()));
@@ -62,6 +64,7 @@ void initProfiles() {
 		options.headingNumbersLevels = true;
 		options.listNumbersLevels = true;
 		options.advancedBoldItalicNesting = false;
+		options.linksToHeadings = false;
 	}
 	{
 		profiles.push_back(std::make_pair("readable", Options()));
@@ -80,6 +83,7 @@ void initProfiles() {
 		options.headingNumbersLevels = true;
 		options.listNumbersLevels = false;
 		options.advancedBoldItalicNesting = false;
+		options.linksToHeadings = false;
 	}
 	{
 		profiles.push_back(std::make_pair("parseable", Options()));
@@ -98,6 +102,7 @@ void initProfiles() {
 		options.headingNumbersLevels = false;
 		options.listNumbersLevels = false;
 		options.advancedBoldItalicNesting = false;
+		options.linksToHeadings = false;
 	}
 }
 
