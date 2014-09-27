@@ -24,5 +24,5 @@ _This is italic, **bold italic** using a character style in an italic paragraph 
 
 _This is_ **bold**_,_ default_, **bold italic** without using an explicit style in an italic paragraph style._
 
-**_This is_ bold_,_** _italic**,_** default **_without using an explicit style in a bold italic paragraph style._**
+**_This is_ bold_,_** _italic**,**_ default **_without using an explicit style in a bold italic paragraph style._**
 
