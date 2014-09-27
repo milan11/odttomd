@@ -20,7 +20,7 @@ _This is italic, **bold italic** using a character style in an italic paragraph 
 
 
 
-**This is **default**, **_italic_**, bold italic without using an explicit style in a bold paragraph style\.**
+**This is **default**, **_italic_**, _bold italic_ without using an explicit style in a bold paragraph style\.**
 
 _This is _**bold**_, _default_, **bold italic** without using an explicit style in an italic paragraph style\._
 
