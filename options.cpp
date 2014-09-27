@@ -46,7 +46,7 @@ void initProfiles() {
 		options.listNumbersStartValue = false;
 		options.headingNumbersLevels = true;
 		options.listNumbersLevels = false;
-		options.edgeSpacesInsideBoldItalic = true;
+		options.edgeSpacesInsideBoldItalic = false;
 		options.boldItalicBeginInsideOfWords = false;
 		options.boldItalicEndInsideOfWords = true;
 		options.linksToHeadings = true;
