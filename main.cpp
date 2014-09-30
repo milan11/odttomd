@@ -1,4 +1,3 @@
-
 #include <fstream>
 #include <iostream>
 #include <boost/algorithm/string.hpp>
@@ -8,6 +7,7 @@
 #include "content.h"
 #include "options.h"
 #include "styles.h"
+#include "xmlInZip.h"
 
 void main_inner(const std::string &inputFile, const std::string &profile) {
 	::setProfile(profile);
@@ -23,25 +23,17 @@ void main_inner(const std::string &inputFile, const std::string &profile) {
 
 	StylesContext stylesContext;
 	{
-		zip_file *f = zip_fopen(z, "styles.xml", 0);
-		if (f == nullptr)
-			throw 3;
-		BOOST_SCOPE_EXIT(f) {
-			zip_fclose(f);
-		} BOOST_SCOPE_EXIT_END
-
-		stylesContext = ::parseStyles(f);
+		Handlers handlers;
+		handlers.push_back(std::make_shared<StylesHandler>(stylesContext));
+		::processXmlInZip(z, "styles.xml", handlers);
 	}
 
+	ContentContext contentContext;
 	{
-		zip_file *f = zip_fopen(z, "content.xml", 0);
-		if (f == nullptr)
-			throw 4;
-		BOOST_SCOPE_EXIT(f) {
-			zip_fclose(f);
-		} BOOST_SCOPE_EXIT_END
-
-		::parseContent(f, stylesContext);
+		Handlers handlers;
+		handlers.push_back(std::make_shared<ContentHandler>(contentContext, stylesContext.styles));
+		handlers.push_back(std::make_shared<StylesHandler>(stylesContext));
+		::processXmlInZip(z, "content.xml", handlers);
 	}
 }
 

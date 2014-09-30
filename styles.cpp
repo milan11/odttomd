@@ -8,18 +8,6 @@
 
 namespace {
 
-void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
-	StylesContext *context = static_cast<StylesContext *>(userData);
-
-	::processStyles_onStart(context, name, atts);
-}
-
-void onEnd(void *userData, const XML_Char *name) {
-	StylesContext *context = static_cast<StylesContext *>(userData);
-
-	::processStyles_onEnd(context, name);
-}
-
 void readOutlineLevelStyle(const XML_Char **atts, OutlineLevelStyle &outlineLevelStyle) {
 	outlineLevelStyle.numFormat = ::attrString(atts, "style:num-format", "");
 	outlineLevelStyle.numLetterSync = ::attrBool(atts, "style:num-letter-sync", false);
@@ -32,43 +20,48 @@ void readOutlineLevelStyle(const XML_Char **atts, OutlineLevelStyle &outlineLeve
 
 }
 
-void processStyles_onStart(StylesContext *context, const XML_Char *name, const XML_Char **atts) {
+StylesHandler::StylesHandler(StylesContext &context)
+	: context(context)
+{
+}
+
+void StylesHandler::onStart(const XML_Char *name, const XML_Char **atts) {
 	if (! ::strcmp(name, "style:style")) {
-		context->currentStyle = &context->styles.styles[::attrString(atts, "style:name", "")];
-		context->currentStyle->parentStyleName = ::attrString(atts, "style:parent-style-name", "");
+		context.currentStyle = &context.styles.styles[::attrString(atts, "style:name", "")];
+		context.currentStyle->parentStyleName = ::attrString(atts, "style:parent-style-name", "");
 	}
 	if (! ::strcmp(name, "style:text-properties")) {
 		if (::attrString(atts, "fo:font-weight", "") == "normal") {
-			context->currentStyle->bold = false;
+			context.currentStyle->bold = false;
 		}
 		if (::attrString(atts, "fo:font-weight", "") == "bold") {
-			context->currentStyle->bold = true;
+			context.currentStyle->bold = true;
 		}
 
 		if (::attrString(atts, "fo:font-style", "") == "normal") {
-			context->currentStyle->italic = false;
+			context.currentStyle->italic = false;
 		}
 		if (::attrString(atts, "fo:font-style", "") == "italic") {
-			context->currentStyle->italic = true;
+			context.currentStyle->italic = true;
 		}
 	}
 
 	if (! ::strcmp(name, "text:outline-level-style")) {
 		uint32_t level = ::attrUint(atts, "text:level", 0);
 		if (level != 0) {
-			OutlineLevelStyle &outlineLevelStyle = context->styles.outlineLevelStyles[level];
+			OutlineLevelStyle &outlineLevelStyle = context.styles.outlineLevelStyles[level];
 			readOutlineLevelStyle(atts, outlineLevelStyle);
 		}
 	}
 
 	if (! ::strcmp(name, "text:list-style")) {
-		context->currentListStyle = &context->styles.listStyles[::attrString(atts, "style:name", "")];
+		context.currentListStyle = &context.styles.listStyles[::attrString(atts, "style:name", "")];
 	}
 
 	if (! ::strcmp(name, "text:list-level-style-number")) {
 		uint32_t level = ::attrUint(atts, "text:level", 0);
 		if (level != 0) {
-			OutlineLevelStyle &outlineLevelStyle = context->currentListStyle->outlineLevelStyles[level];
+			OutlineLevelStyle &outlineLevelStyle = context.currentListStyle->outlineLevelStyles[level];
 			readOutlineLevelStyle(atts, outlineLevelStyle);
 		}
 	}
@@ -76,48 +69,17 @@ void processStyles_onStart(StylesContext *context, const XML_Char *name, const X
 	if (! ::strcmp(name, "text:list-level-style-bullet")) {
 		uint32_t level = ::attrUint(atts, "text:level", 0);
 		if (level != 0) {
-			BulletStyle &bulletStyle = context->currentListStyle->bulletStyles[level];
+			BulletStyle &bulletStyle = context.currentListStyle->bulletStyles[level];
 			(void)bulletStyle;
 		}
 	}
 }
 
-void processStyles_onEnd(StylesContext *context, const XML_Char *name) {
+void StylesHandler::onEnd(const XML_Char *name) {
 	if (! ::strcmp(name, "style:style")) {
-		context->currentStyle = nullptr;
+		context.currentStyle = nullptr;
 	}
 	if (! ::strcmp(name, "text:list-style")) {
-		context->currentListStyle = nullptr;
+		context.currentListStyle = nullptr;
 	}
-}
-
-StylesContext parseStyles(zip_file *f) {
-	StylesContext context;
-
-	XML_Parser parser = ::XML_ParserCreate(nullptr);
-	BOOST_SCOPE_EXIT(&parser) {
-		::XML_ParserFree(parser);
-	} BOOST_SCOPE_EXIT_END
-
-	::XML_SetUserData(parser, &context);
-	::XML_SetElementHandler(parser, &onStart, &onEnd);
-
-	static const size_t bufferSize = 4 * 1024;
-	char buffer[bufferSize];
-
-	int64_t readResult = 0;
-
-	while ((readResult = zip_fread(f, buffer, bufferSize)) > 0) {
-		if (::XML_Parse(parser, buffer, static_cast<int>(readResult), false) == 0)
-			throw 21;
-	}
-
-	if (readResult < 0) {
-		throw 20;
-	}
-
-	if (::XML_Parse(parser, buffer, 0, true) == 0)
-		throw 22;
-
-	return context;
 }

@@ -4,7 +4,7 @@
 #include <map>
 #include <boost/optional.hpp>
 #include <expat.h>
-#include <zip.h>
+#include "xmlInZip.h"
 
 class Style {
 
@@ -120,7 +120,7 @@ public:
 		}
 	}
 
-	const ListStyle &getListStyle(const std::string &name) {
+	const ListStyle &getListStyle(const std::string &name) const {
 		const NameToListStyle::const_iterator it = listStyles.find(name);
 		if (it != listStyles.end()) {
 			return it->second;
@@ -158,7 +158,14 @@ public:
 
 };
 
-void processStyles_onStart(StylesContext *context, const XML_Char *name, const XML_Char **atts);
-void processStyles_onEnd(StylesContext *context, const XML_Char *name);
+class StylesHandler : public ExpatXmlHandler {
+public:
+	StylesHandler(StylesContext &context);
 
-StylesContext parseStyles(zip_file *f);
+public:
+	void onStart(const XML_Char *name, const XML_Char **atts) override;
+	void onEnd(const XML_Char *name) override;
+
+private:
+	StylesContext &context;
+};

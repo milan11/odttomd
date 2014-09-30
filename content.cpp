@@ -1,7 +1,6 @@
 #include "content.h"
 
 #include <algorithm>
-#include <stack>
 #include <vector>
 #include <boost/scope_exit.hpp>
 #include <expat.h>
@@ -9,49 +8,10 @@
 #include "numbering.h"
 #include "options.h"
 #include "util.h"
-#include "writer.h"
 
 namespace {
 
-class List {
-
-public:
-	std::string listStyleName;
-	std::vector<uint32_t> currentNumbering;
-};
-
-class Context {
-
-public:
-	Context(StylesContext &stylesContext)
-		: stylesContext(stylesContext)
-		, w(std::cout)
-	{
-		currentStyles.push(Style());
-	}
-
-public:
-	StylesContext stylesContext;
-	Writer w;
-
-	std::stack<Style> currentStyles;
-	Style currentStyle;
-	bool outerIsItalic = false;
-
-	std::string currentUrl;
-	std::vector<uint32_t> currentOutlineNumbering;
-
-	std::stack<List> currentLists;
-
-	uint32_t remainingSpacesCount = 0;
-	bool lastWasWhitespace = true;
-	bool lastWasStyleEnd = false;
-
-	char underlineHeadingUsing = 0;
-	uint32_t currentHeadingOutlineLevel = 0;
-};
-
-void writeRemainingSpaces(Context &context) {
+void writeRemainingSpaces(ContentContext &context) {
 	context.w.write(std::string(context.remainingSpacesCount, ' '));
 
 	if (context.remainingSpacesCount > 0) {
@@ -61,14 +21,14 @@ void writeRemainingSpaces(Context &context) {
 	context.remainingSpacesCount = 0;
 }
 
-void writeSpaceBeforeStyleIfNeeded(Context &context) {
+void writeSpaceBeforeStyleIfNeeded(ContentContext &context) {
 	if ((! options().boldItalicBeginInsideOfWords) && (! context.lastWasWhitespace)) {
 		context.w.write(' ');
 		context.lastWasWhitespace = true;
 	}
 }
 
-void writeSpaceAfterStyleIfNeeded(Context &context, const char currentChar) {
+void writeSpaceAfterStyleIfNeeded(ContentContext &context, const char currentChar) {
 	if ((! options().boldItalicEndInsideOfWords) && (context.lastWasStyleEnd)) {
 		if (currentChar != ' ' && currentChar != '\n')
 			context.w.write(' ');
@@ -77,7 +37,7 @@ void writeSpaceAfterStyleIfNeeded(Context &context, const char currentChar) {
 	context.lastWasStyleEnd = false;
 }
 
-void writeStyleDiff(Context &context, const Style &oldStyle, const Style &newStyle) {
+void writeStyleDiff(ContentContext &context, const Style &oldStyle, const Style &newStyle) {
 	const bool enablingBold = options().bold && (!oldStyle.bold.get_value_or(false) && newStyle.bold.get_value_or(false));
 	bool disablingBold = options().bold && (oldStyle.bold.get_value_or(false) && !newStyle.bold.get_value_or(false));
 	const bool enablingItalic = options().italic && (!oldStyle.italic.get_value_or(false) && newStyle.italic.get_value_or(false));
@@ -148,16 +108,16 @@ void writeStyleDiff(Context &context, const Style &oldStyle, const Style &newSty
 	}
 }
 
-void ensureStyleApplied(Context &context) {
+void ensureStyleApplied(ContentContext &context) {
 	writeStyleDiff(context, context.currentStyle, context.currentStyles.top());
 	context.currentStyle = context.currentStyles.top();
 }
 
-void setLastWasWhitespace(Context &context, const char c) {
+void setLastWasWhitespace(ContentContext &context, const char c) {
 	context.lastWasWhitespace = (c == ' ' || c == '\n');
 }
 
-void writeEscaped(Context &context, const char c) {
+void writeEscaped(ContentContext &context, const char c) {
 	if ((c == ' ') && (! options().edgeSpacesInsideBoldItalic)) {
 		++(context.remainingSpacesCount);
 	} else {
@@ -199,13 +159,13 @@ void writeEscaped(Context &context, const char c) {
 	::setLastWasWhitespace(context, c);
 }
 
-void writeEscaped(Context &context, const std::string &str) {
+void writeEscaped(ContentContext &context, const std::string &str) {
 	for (const char &c : str) {
 		::writeEscaped(context, c);
 	}
 }
 
-void writeRaw(Context &context, const char c) {
+void writeRaw(ContentContext &context, const char c) {
 	ensureStyleApplied(context);
 
 	::writeRemainingSpaces(context);
@@ -216,17 +176,17 @@ void writeRaw(Context &context, const char c) {
 	::setLastWasWhitespace(context, c);
 }
 
-void writeRaw(Context &context, const std::string &str) {
+void writeRaw(ContentContext &context, const std::string &str) {
 	for (const char &c : str) {
 		::writeRaw(context, c);
 	}
 }
 
-void pushStyle(Context &context, const Style &style) {
+void pushStyle(ContentContext &context, const Style &style) {
 	context.currentStyles.push(context.currentStyles.top().apply(style));
 }
 
-void popStyle(Context &context) {
+void popStyle(ContentContext &context) {
 	context.currentStyles.pop();
 }
 
@@ -250,50 +210,54 @@ void fixOutlineLevelStyleForMarkdown(OutlineLevelStyle &style, const bool number
 	}
 }
 
-void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
-	Context *context = static_cast<Context *>(userData);
+}
 
-	::processStyles_onStart(&context->stylesContext, name, atts);
+ContentHandler::ContentHandler(ContentContext &context, const Styles &styles)
+	: context(context)
+	, styles(styles)
+{
+}
 
+void ContentHandler::onStart(const XML_Char *name, const XML_Char **atts) {
 	if (! ::strcmp(name, "text:h")) {
 		uint32_t level = ::attrUint(atts, "text:outline-level", 0);
-		context->currentHeadingOutlineLevel = level;
+		context.currentHeadingOutlineLevel = level;
 
 		if (level > 0) {
-			context->underlineHeadingUsing = '\0';
+			context.underlineHeadingUsing = '\0';
 			if (options().underlineHeading1 && level == 1) {
-				context->underlineHeadingUsing = '=';
+				context.underlineHeadingUsing = '=';
 			}
 			if (options().underlineHeading2 && level == 2) {
-				context->underlineHeadingUsing = '-';
+				context.underlineHeadingUsing = '-';
 			}
 
-			if (context->underlineHeadingUsing == '\0') {
-				::writeRaw(*context, std::string(level, '#'));
-				::writeRaw(*context, ' ');
+			if (context.underlineHeadingUsing == '\0') {
+				::writeRaw(context, std::string(level, '#'));
+				::writeRaw(context, ' ');
 			}
 
-			context->w.resetCodePointsCount();
+			context.w.resetCodePointsCount();
 
-			while (context->currentOutlineNumbering.size() > level) {
-				context->currentOutlineNumbering.pop_back();
+			while (context.currentOutlineNumbering.size() > level) {
+				context.currentOutlineNumbering.pop_back();
 			}
-			while (context->currentOutlineNumbering.size() < level - 1) {
-				uint32_t addedLevel = static_cast<uint32_t>(context->currentOutlineNumbering.size()) + 1;
-				context->currentOutlineNumbering.push_back(context->stylesContext.styles.getOutlineLevelStyle(addedLevel).startValue);
+			while (context.currentOutlineNumbering.size() < level - 1) {
+				uint32_t addedLevel = static_cast<uint32_t>(context.currentOutlineNumbering.size()) + 1;
+				context.currentOutlineNumbering.push_back(styles.getOutlineLevelStyle(addedLevel).startValue);
 			}
 
-			OutlineLevelStyle outlineLevelStyle = context->stylesContext.styles.getOutlineLevelStyle(level);
+			OutlineLevelStyle outlineLevelStyle = styles.getOutlineLevelStyle(level);
 			::fixOutlineLevelStyleForMarkdown(outlineLevelStyle, options().headingNumberFormats, options().headingNumbersStartValue, options().headingNumbersLevels);
 
-			if (context->currentOutlineNumbering.size() < level) {
-				context->currentOutlineNumbering.push_back(outlineLevelStyle.startValue);
+			if (context.currentOutlineNumbering.size() < level) {
+				context.currentOutlineNumbering.push_back(outlineLevelStyle.startValue);
 			} else {
-				++(context->currentOutlineNumbering.back());
+				++(context.currentOutlineNumbering.back());
 			}
 
 			if (! outlineLevelStyle.numFormat.empty()) {
-				uint32_t currentNumber = context->currentOutlineNumbering.back();
+				uint32_t currentNumber = context.currentOutlineNumbering.back();
 
 				uint32_t fromLevel = 1;
 				if (outlineLevelStyle.displayLevels <= level) {
@@ -303,50 +267,50 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 				}
 
 				if (options().stylesInHeadingNumbers && (! outlineLevelStyle.styleName.empty())) {
-					::pushStyle(*context, context->stylesContext.styles.getMergedStyle(outlineLevelStyle.styleName));
+					::pushStyle(context, styles.getMergedStyle(outlineLevelStyle.styleName));
 				}
 
-				::writeEscaped(*context, outlineLevelStyle.prefix);
+				::writeEscaped(context, outlineLevelStyle.prefix);
 
 				for (uint32_t higherLevel = fromLevel; higherLevel < level; ++higherLevel) {
-					OutlineLevelStyle higherLevelStyle = context->stylesContext.styles.getOutlineLevelStyle(higherLevel);
+					OutlineLevelStyle higherLevelStyle = styles.getOutlineLevelStyle(higherLevel);
 					::fixOutlineLevelStyleForMarkdown(higherLevelStyle, options().headingNumberFormats, options().headingNumbersStartValue, options().headingNumbersLevels);
 					if (! higherLevelStyle.numFormat.empty()) {
-						const std::string numberText = numbering::createNumber(context->currentOutlineNumbering[higherLevel - 1], higherLevelStyle.numFormat, higherLevelStyle.numLetterSync);
-						::writeEscaped(*context, numberText);
+						const std::string numberText = numbering::createNumber(context.currentOutlineNumbering[higherLevel - 1], higherLevelStyle.numFormat, higherLevelStyle.numLetterSync);
+						::writeEscaped(context, numberText);
 
 						if (! options().escapeDotInHeadingNumbers)
-							::writeRaw(*context, '.');
+							::writeRaw(context, '.');
 						else
-							::writeEscaped(*context, '.');
+							::writeEscaped(context, '.');
 					}
 				}
 				if (! outlineLevelStyle.numFormat.empty()) {
 					const std::string numberText = numbering::createNumber(currentNumber, outlineLevelStyle.numFormat, outlineLevelStyle.numLetterSync);
-					::writeEscaped(*context, numberText);
+					::writeEscaped(context, numberText);
 				}
 
 				if ((! options().escapeDotInHeadingNumbers) && outlineLevelStyle.suffix == ".")
-					::writeRaw(*context, '.');
+					::writeRaw(context, '.');
 				else
-					::writeEscaped(*context, outlineLevelStyle.suffix);
+					::writeEscaped(context, outlineLevelStyle.suffix);
 
 				if (options().stylesInHeadingNumbers && (! outlineLevelStyle.styleName.empty())) {
-					::popStyle(*context);
+					::popStyle(context);
 				}
 
-				::writeRaw(*context, ' ');
+				::writeRaw(context, ' ');
 			}
 		}
 	}
 	if (! ::strcmp(name, "text:p")) {
-		::pushStyle(*context, context->stylesContext.styles.getMergedStyle(::attrString(atts, "text:style-name", "")));
+		::pushStyle(context, styles.getMergedStyle(::attrString(atts, "text:style-name", "")));
 	}
 	if (! ::strcmp(name, "text:span")) {
-		::pushStyle(*context, context->stylesContext.styles.getMergedStyle(::attrString(atts, "text:style-name", "")));
+		::pushStyle(context, styles.getMergedStyle(::attrString(atts, "text:style-name", "")));
 	}
 	if (! ::strcmp(name, "text:line-break")) {
-		::writeRaw(*context, "  \n");
+		::writeRaw(context, "  \n");
 	}
 	if (! ::strcmp(name, "text:list")) {
 		std::string listStyleName = ::attrString(atts, "text:style-name", "");
@@ -354,31 +318,31 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 		const bool newList = (! listStyleName.empty());
 
 		if (newList) {
-			context->currentLists.push(List());
+			context.currentLists.push(List());
 
-			context->currentLists.top().listStyleName = ::attrString(atts, "text:style-name", "");
+			context.currentLists.top().listStyleName = ::attrString(atts, "text:style-name", "");
 		}
 
-		uint32_t level = static_cast<uint32_t>(context->currentLists.top().currentNumbering.size()) + 1;
+		uint32_t level = static_cast<uint32_t>(context.currentLists.top().currentNumbering.size()) + 1;
 
-		if (context->stylesContext.styles.getListStyle(context->currentLists.top().listStyleName).isNumbered(level)) {
-			OutlineLevelStyle outlineLevelStyle = context->stylesContext.styles.getListStyle(context->currentLists.top().listStyleName).getOutlineLevelStyle(level);
+		if (styles.getListStyle(context.currentLists.top().listStyleName).isNumbered(level)) {
+			OutlineLevelStyle outlineLevelStyle = styles.getListStyle(context.currentLists.top().listStyleName).getOutlineLevelStyle(level);
 			::fixOutlineLevelStyleForMarkdown(outlineLevelStyle, options().listNumberFormats, options().listNumbersStartValue, options().listNumbersLevels);
-			context->currentLists.top().currentNumbering.push_back(outlineLevelStyle.startValue);
+			context.currentLists.top().currentNumbering.push_back(outlineLevelStyle.startValue);
 		} else {
-			context->currentLists.top().currentNumbering.push_back(0);
+			context.currentLists.top().currentNumbering.push_back(0);
 		}
 	}
 	if (! ::strcmp(name, "text:list-item")) {
-		uint32_t level = static_cast<uint32_t>(context->currentLists.top().currentNumbering.size());
+		uint32_t level = static_cast<uint32_t>(context.currentLists.top().currentNumbering.size());
 
-		::writeRaw(*context, std::string((level - 1) * 2, ' '));
+		::writeRaw(context, std::string((level - 1) * 2, ' '));
 
-		if (context->stylesContext.styles.getListStyle(context->currentLists.top().listStyleName).isNumbered(level)) {
-			OutlineLevelStyle outlineLevelStyle = context->stylesContext.styles.getListStyle(context->currentLists.top().listStyleName).getOutlineLevelStyle(level);
+		if (styles.getListStyle(context.currentLists.top().listStyleName).isNumbered(level)) {
+			OutlineLevelStyle outlineLevelStyle = styles.getListStyle(context.currentLists.top().listStyleName).getOutlineLevelStyle(level);
 			::fixOutlineLevelStyleForMarkdown(outlineLevelStyle, options().listNumberFormats, options().listNumbersStartValue, options().listNumbersLevels);
 
-			uint32_t currentNumber = context->currentLists.top().currentNumbering.back();
+			uint32_t currentNumber = context.currentLists.top().currentNumbering.back();
 
 			uint32_t fromLevel = 1;
 			if (outlineLevelStyle.displayLevels <= level) {
@@ -388,138 +352,100 @@ void onStart(void *userData, const XML_Char *name, const XML_Char **atts) {
 			}
 
 			if (options().stylesInListNumbers && (! outlineLevelStyle.styleName.empty())) {
-				::pushStyle(*context, context->stylesContext.styles.getMergedStyle(outlineLevelStyle.styleName));
+				::pushStyle(context, styles.getMergedStyle(outlineLevelStyle.styleName));
 			}
 
-			::writeEscaped(*context, outlineLevelStyle.prefix);
+			::writeEscaped(context, outlineLevelStyle.prefix);
 
 			for (uint32_t higherLevel = fromLevel; higherLevel < level; ++higherLevel) {
-				OutlineLevelStyle higherLevelStyle = context->stylesContext.styles.getListStyle(context->currentLists.top().listStyleName).getOutlineLevelStyle(higherLevel);
+				OutlineLevelStyle higherLevelStyle = styles.getListStyle(context.currentLists.top().listStyleName).getOutlineLevelStyle(higherLevel);
 				::fixOutlineLevelStyleForMarkdown(higherLevelStyle, options().listNumberFormats, options().listNumbersStartValue, options().listNumbersLevels);
 
 				if (! higherLevelStyle.numFormat.empty()) {
-					::writeEscaped(*context, numbering::createNumber(context->currentLists.top().currentNumbering[higherLevel - 1], higherLevelStyle.numFormat, higherLevelStyle.numLetterSync));
+					::writeEscaped(context, numbering::createNumber(context.currentLists.top().currentNumbering[higherLevel - 1], higherLevelStyle.numFormat, higherLevelStyle.numLetterSync));
 
 					if (! options().escapeDotInListNumbers)
-						::writeRaw(*context, '.');
+						::writeRaw(context, '.');
 					else
-						::writeEscaped(*context, '.');
+						::writeEscaped(context, '.');
 				}
 			}
 			if (! outlineLevelStyle.numFormat.empty()) {
-				::writeEscaped(*context, numbering::createNumber(currentNumber, outlineLevelStyle.numFormat, outlineLevelStyle.numLetterSync));
+				::writeEscaped(context, numbering::createNumber(currentNumber, outlineLevelStyle.numFormat, outlineLevelStyle.numLetterSync));
 			}
 
 			if ((! options().escapeDotInListNumbers) && outlineLevelStyle.suffix == ".")
-				::writeRaw(*context, '.');
+				::writeRaw(context, '.');
 			else
-				::writeEscaped(*context, outlineLevelStyle.suffix);
+				::writeEscaped(context, outlineLevelStyle.suffix);
 
 			if (options().stylesInListNumbers && (! outlineLevelStyle.styleName.empty())) {
-				::popStyle(*context);
+				::popStyle(context);
 			}
 		} else {
-			::writeRaw(*context, (level % 2) ? '*' : '-');
+			::writeRaw(context, (level % 2) ? '*' : '-');
 		}
 
-		::writeRaw(*context, ' ');
+		::writeRaw(context, ' ');
 	}
 
 	if (! ::strcmp(name, "text:a")) {
-		context->currentUrl = ::attrString(atts, "xlink:href", "");
-		::writeRaw(*context, '[');
+		context.currentUrl = ::attrString(atts, "xlink:href", "");
+		::writeRaw(context, '[');
 	}
 }
 
-void onEnd(void *userData, const XML_Char *name) {
-	Context *context = static_cast<Context *>(userData);
-
-	::processStyles_onEnd(&context->stylesContext, name);
-
+void ContentHandler::onEnd(const XML_Char *name) {
 	if (! ::strcmp(name, "text:h")) {
-		if (context->underlineHeadingUsing == '\0') {
+		if (context.underlineHeadingUsing == '\0') {
 			if (options().closeHeadings || options().closeHeadingsShort) {
-				const uint32_t level = context->currentHeadingOutlineLevel;
+				const uint32_t level = context.currentHeadingOutlineLevel;
 
-				::writeRaw(*context, ' ');
-				::writeRaw(*context, std::string(options().closeHeadingsShort ? 1 : level, '#'));
+				::writeRaw(context, ' ');
+				::writeRaw(context, std::string(options().closeHeadingsShort ? 1 : level, '#'));
 			}
 		}
-		if (context->underlineHeadingUsing != '\0') {
-			::writeRaw(*context, '\n');
-			::writeRaw(*context, std::string(context->w.getCodePointsCount() - 1, context->underlineHeadingUsing));
+		if (context.underlineHeadingUsing != '\0') {
+			::writeRaw(context, '\n');
+			::writeRaw(context, std::string(context.w.getCodePointsCount() - 1, context.underlineHeadingUsing));
 		}
-		::writeRaw(*context, '\n');
-		::writeRaw(*context, '\n');
+		::writeRaw(context, '\n');
+		::writeRaw(context, '\n');
 	}
 	if (! ::strcmp(name, "text:p")) {
-		::popStyle(*context);
+		::popStyle(context);
 
-		::writeRaw(*context, '\n');
+		::writeRaw(context, '\n');
 
-		if (context->currentLists.size() == 0)
-			::writeRaw(*context, '\n');
+		if (context.currentLists.size() == 0)
+			::writeRaw(context, '\n');
 	}
 	if (! ::strcmp(name, "text:span")) {
-		::popStyle(*context);
+		::popStyle(context);
 	}
 	if (! ::strcmp(name, "text:list")) {
-		context->currentLists.top().currentNumbering.pop_back();
+		context.currentLists.top().currentNumbering.pop_back();
 
-		if (context->currentLists.top().currentNumbering.empty()) {
-			context->currentLists.pop();
+		if (context.currentLists.top().currentNumbering.empty()) {
+			context.currentLists.pop();
 		}
 
-		if (context->currentLists.size() == 0)
-			::writeRaw(*context, '\n');
+		if (context.currentLists.size() == 0)
+			::writeRaw(context, '\n');
 	}
 	if (! ::strcmp(name, "text:list-item")) {
-		++context->currentLists.top().currentNumbering.back();
+		++context.currentLists.top().currentNumbering.back();
 	}
 	if (! ::strcmp(name, "text:a")) {
-		::writeRaw(*context, ']');
-		::writeRaw(*context, '(');
-		::writeEscaped(*context, context->currentUrl);
-		::writeRaw(*context, ')');
+		::writeRaw(context, ']');
+		::writeRaw(context, '(');
+		::writeEscaped(context, context.currentUrl);
+		::writeRaw(context, ')');
 	}
 }
 
-void onData(void *userData, const XML_Char *s, int len) {
-	Context *context = static_cast<Context *>(userData);
-
+void ContentHandler::onData(const XML_Char *s, int len) {
 	for (const XML_Char *c = s; c < s + len; ++c) {
-		::writeEscaped(*context, *c);
+		::writeEscaped(context, *c);
 	}
-}
-
-}
-
-void parseContent(zip_file *f, StylesContext &stylesContext) {
-	Context context(stylesContext);
-
-	XML_Parser parser = ::XML_ParserCreate(nullptr);
-	BOOST_SCOPE_EXIT(&parser) {
-		::XML_ParserFree(parser);
-	} BOOST_SCOPE_EXIT_END
-
-	::XML_SetUserData(parser, &context);
-	::XML_SetElementHandler(parser, &onStart, &onEnd);
-	::XML_SetCharacterDataHandler(parser, &onData);
-
-	static const size_t bufferSize = 4 * 1024;
-	char buffer[bufferSize];
-
-	int64_t readResult = 0;
-
-	while ((readResult = zip_fread(f, buffer, bufferSize)) > 0) {
-		if (::XML_Parse(parser, buffer, static_cast<int>(readResult), false) == 0)
-			throw 11;
-	}
-
-	if (readResult < 0) {
-		throw 10;
-	}
-
-	if (::XML_Parse(parser, buffer, 0, true) == 0)
-		throw 12;
 }
