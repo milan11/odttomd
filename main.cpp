@@ -15,7 +15,7 @@ void main_inner(const std::string &inputFile, const std::string &profile) {
 	int err = 0;
 	zip *z = ::zip_open(inputFile.c_str(), 0, &err);
 	if (z == nullptr)
-		throw 2;
+		throw "Unable to read input file: " + inputFile;
 
 	BOOST_SCOPE_EXIT(z) {
 		::zip_close(z);
@@ -95,15 +95,15 @@ int main(int argc, char *argv[]) {
 
 	if (showHelp) {
 		std::cout << desc << std::endl;
-		return 1;
+		return 2;
 	}
 
 	try {
 		::main_inner(vm["odt_file"].as<std::string>(), vm["profile"].as<ProfileOption>().value);
 
 		return 0;
-	} catch (int &result) {
-		std::cerr << "ERROR: " << result << std::endl;
-		return result;
+	} catch (const std::string &str) {
+		std::cerr << "[ERROR] " << str << std::endl;
+		return 1;
 	}
 }

@@ -156,8 +156,7 @@ void setProfile(const std::string &name) {
 			return;
 		}
 	}
-	std::cerr << "Unknown profile: " << name << std::endl;
-	throw 50;
+	throw "Unknown profile: " + name;
 }
 
 const Options &options() {

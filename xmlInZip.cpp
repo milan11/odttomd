@@ -40,7 +40,7 @@ void processXmlInZip(zip * const z, const std::string &xmlFileName, Handlers &ha
 
 	zip_file *f = zip_fopen(z, xmlFileName.c_str(), 0);
 	if (f == nullptr)
-		throw 3;
+		throw "Unable to open XML file: " + xmlFileName;
 	BOOST_SCOPE_EXIT(f) {
 		zip_fclose(f);
 	} BOOST_SCOPE_EXIT_END
@@ -52,13 +52,13 @@ void processXmlInZip(zip * const z, const std::string &xmlFileName, Handlers &ha
 
 	while ((readResult = zip_fread(f, buffer, bufferSize)) > 0) {
 		if (::XML_Parse(parser, buffer, static_cast<int>(readResult), false) == 0)
-			throw 11;
+			throw "Unable to parse XML file: " + xmlFileName;
 	}
 
 	if (readResult < 0) {
-		throw 10;
+		throw "Unable to read data from XML file: " + xmlFileName;
 	}
 
 	if (::XML_Parse(parser, buffer, 0, true) == 0)
-		throw 12;
+		throw "Unable to parse end of XML file: " + xmlFileName;
 }
