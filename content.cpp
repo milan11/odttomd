@@ -212,9 +212,14 @@ void fixOutlineLevelStyleForMarkdown(OutlineLevelStyle &style, const bool number
 
 }
 
-ContentHandler::ContentHandler(ContentContext &context, const Styles &styles)
-	: context(context)
+std::string transformBookmarkText(const std::string &str) {
+	return str;
+}
+
+ContentHandler::ContentHandler(const Structure &structure, const Styles &styles, ContentContext &context)
+	: structure(structure)
 	, styles(styles)
+	, context(context)
 {
 }
 
@@ -393,6 +398,20 @@ void ContentHandler::onStart(const XML_Char *name, const XML_Char **atts) {
 		context.currentUrl = ::attrString(atts, "xlink:href", "");
 		::writeRaw(context, '[');
 	}
+	if (! ::strcmp(name, "text:bookmark-ref")) {
+		if (options().linksToHeadings) {
+			const std::string bookmarkName = ::attrString(atts, "text:ref-name", "");
+			if (! bookmarkName.empty()) {
+				const Structure::NameToText::const_iterator it = structure.bookmarks.find(bookmarkName);
+				if (it != structure.bookmarks.end()) {
+					context.currentUrl = '#' + ::transformBookmarkText(it->second);
+					::writeRaw(context, '[');
+				} else {
+					std::cerr << "Bookmark not found: " << bookmarkName << std::endl;
+				}
+			}
+		}
+	}
 }
 
 void ContentHandler::onEnd(const XML_Char *name) {
@@ -436,11 +455,15 @@ void ContentHandler::onEnd(const XML_Char *name) {
 	if (! ::strcmp(name, "text:list-item")) {
 		++context.currentLists.top().currentNumbering.back();
 	}
-	if (! ::strcmp(name, "text:a")) {
-		::writeRaw(context, ']');
-		::writeRaw(context, '(');
-		::writeEscaped(context, context.currentUrl);
-		::writeRaw(context, ')');
+	if ((! ::strcmp(name, "text:a")) || (! ::strcmp(name, "text:bookmark-ref"))) {
+		if (! context.currentUrl.empty()) {
+			::writeRaw(context, ']');
+			::writeRaw(context, '(');
+			::writeEscaped(context, context.currentUrl);
+			::writeRaw(context, ')');
+
+			context.currentUrl = "";
+		}
 	}
 }
 

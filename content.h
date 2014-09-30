@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stack>
+#include "structure.h"
 #include "styles.h"
 #include "writer.h"
 #include "xmlInZip.h"
@@ -43,7 +44,7 @@ public:
 
 class ContentHandler : public ExpatXmlHandler {
 public:
-	ContentHandler(ContentContext &context, const Styles &styles);
+	ContentHandler(const Structure &structure, const Styles &styles, ContentContext &context);
 
 public:
 	void onStart(const XML_Char *name, const XML_Char **atts) override;
@@ -51,6 +52,8 @@ public:
 	void onData(const XML_Char *s, int len) override;
 
 private:
-	ContentContext &context;
+	const Structure &structure;
 	const Styles &styles;
+
+	ContentContext &context;
 };

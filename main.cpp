@@ -6,6 +6,7 @@
 #include <zip.h>
 #include "content.h"
 #include "options.h"
+#include "structure.h"
 #include "styles.h"
 #include "xmlInZip.h"
 
@@ -21,6 +22,13 @@ void main_inner(const std::string &inputFile, const std::string &profile) {
 		::zip_close(z);
 	} BOOST_SCOPE_EXIT_END
 
+	StructureContext structureContext;
+	{
+		Handlers handlers;
+		handlers.push_back(std::make_shared<StructureHandler>(structureContext));
+		::processXmlInZip(z, "content.xml", handlers);
+	}
+
 	StylesContext stylesContext;
 	{
 		Handlers handlers;
@@ -31,7 +39,7 @@ void main_inner(const std::string &inputFile, const std::string &profile) {
 	ContentContext contentContext;
 	{
 		Handlers handlers;
-		handlers.push_back(std::make_shared<ContentHandler>(contentContext, stylesContext.styles));
+		handlers.push_back(std::make_shared<ContentHandler>(structureContext.structure, stylesContext.styles, contentContext));
 		handlers.push_back(std::make_shared<StylesHandler>(stylesContext));
 		::processXmlInZip(z, "content.xml", handlers);
 	}
