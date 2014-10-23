@@ -1,6 +1,8 @@
 #include "content.h"
 
 #include <algorithm>
+#include <iomanip>
+#include <sstream>
 #include <vector>
 #include <boost/scope_exit.hpp>
 #include <expat.h>
@@ -212,8 +214,50 @@ void fixOutlineLevelStyleForMarkdown(OutlineLevelStyle &style, const bool number
 
 }
 
+char hexDigit(const char digit) {
+	if (digit < 10) {
+		return '0' + digit;
+	} else {
+		return 'A' + (digit - 10);
+	}
+}
+
 std::string transformBookmarkText(const std::string &str) {
-	return str;
+	std::ostringstream result;
+
+	bool lastWasDash = false;
+
+	for (const char &c : str) {
+		const bool isFirst128 = ((c & 0x80) == 0);
+
+		if (isFirst128) {
+			if (
+				((c >= 'a') && (c <= 'z'))
+				||
+				((c >= '0') && (c <= '9'))
+				||
+				(c == '_')
+			) {
+				result << c;
+				lastWasDash = false;
+			}
+			else if ((c >= 'A') && (c <= 'Z')) {
+				result << static_cast<char>(::tolower(c));
+				lastWasDash = false;
+			}
+			else {
+				if (! lastWasDash) {
+					result << '-';
+					lastWasDash = true;
+				}
+			}
+		} else {
+			result << '%' << ::hexDigit((c < 0 ? c+ 256 : c) / 16) << ::hexDigit((c < 0 ? c+ 256 : c) % 16);
+			lastWasDash = false;
+		}
+	}
+
+	return result.str();
 }
 
 ContentHandler::ContentHandler(const Structure &structure, const Styles &styles, ContentContext &context)
