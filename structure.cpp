@@ -34,6 +34,6 @@ void StructureHandler::onEnd(const XML_Char *name) {
 
 void StructureHandler::onData(const XML_Char *s, int len) {
 	for (const std::string &bookmarkName : context.currentBookmarkNames) {
-		context.structure.bookmarks[bookmarkName] += std::string(s, len);
+		context.structure.bookmarks[bookmarkName] += std::string(s, static_cast<size_t>(len));
 	}
 }

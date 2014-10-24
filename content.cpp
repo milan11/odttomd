@@ -503,7 +503,5 @@ void ContentHandler::onEnd(const XML_Char *name) {
 }
 
 void ContentHandler::onData(const XML_Char *s, int len) {
-	for (const XML_Char *c = s; c < s + len; ++c) {
-		::writeVisibleText_escaped(context, *c);
-	}
+	::writeVisibleText_escaped(context, std::string(s, static_cast<size_t>(len)));
 }

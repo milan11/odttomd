@@ -3,7 +3,7 @@
 #include <stack>
 #include "structure.h"
 #include "styles.h"
-#include "writer.h"
+#include "writer_output.h"
 #include "xmlInZip.h"
 
 class List {
@@ -23,7 +23,7 @@ public:
 	}
 
 public:
-	Writer w;
+	Writer_Output w;
 
 	std::stack<Style> currentStyles;
 	Style currentStyle;
