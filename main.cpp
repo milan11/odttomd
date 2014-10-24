@@ -8,6 +8,7 @@
 #include "options.h"
 #include "structure.h"
 #include "styles.h"
+#include "writer_output.h"
 #include "xmlInZip.h"
 
 void main_inner(const std::string &inputFile, const std::string &profile) {
@@ -36,7 +37,8 @@ void main_inner(const std::string &inputFile, const std::string &profile) {
 		::processXmlInZip(z, "styles.xml", handlers);
 	}
 
-	ContentContext contentContext;
+	Writer_Output output(std::cout);
+	ContentContext contentContext(output);
 	{
 		Handlers handlers;
 		handlers.push_back(std::make_shared<ContentHandler>(structureContext.structure, stylesContext.styles, contentContext));

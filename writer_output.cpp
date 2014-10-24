@@ -8,6 +8,14 @@ Writer_Output::Writer_Output(std::ostream &os)
 {
 }
 
+void Writer_Output::resetCodePointsCount() {
+	codePointsCount = 0;
+}
+
+uint32_t Writer_Output::getCodePointsCount() const {
+	return codePointsCount;
+}
+
 void Writer_Output::writeMarkup(const char c)
 {
 	write(c);
@@ -80,12 +88,3 @@ void Writer_Output::write(const std::string &str) {
 		write(c);
 	}
 }
-
-void Writer_Output::resetCodePointsCount() {
-	codePointsCount = 0;
-}
-
-uint32_t Writer_Output::getCodePointsCount() const {
-	return codePointsCount;
-}
-

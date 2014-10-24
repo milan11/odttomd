@@ -3,7 +3,7 @@
 #include <stack>
 #include "structure.h"
 #include "styles.h"
-#include "writer_output.h"
+#include "writer.h"
 #include "xmlInZip.h"
 
 class List {
@@ -16,14 +16,14 @@ public:
 class ContentContext {
 
 public:
-	ContentContext()
-		: w(std::cout)
+	ContentContext(Writer &writer)
+		: w(writer)
 	{
 		currentStyles.push(Style());
 	}
 
 public:
-	Writer_Output w;
+	Writer &w;
 
 	std::stack<Style> currentStyles;
 	Style currentStyle;

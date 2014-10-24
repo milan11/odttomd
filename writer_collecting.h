@@ -1,15 +1,13 @@
 #pragma once
 
-#include <iosfwd>
+#include <sstream>
 #include "writer.h"
 
-class Writer_Output : public Writer {
+class Writer_Collecting : public Writer {
 
 public:
-	Writer_Output(std::ostream &os);
-
-	void resetCodePointsCount();
-	uint32_t getCodePointsCount() const;
+	void resetCollectedVisibleText();
+	std::string getCollectedVisibleText() const;
 
 public:
 	virtual void writeMarkup(const char c) override;
@@ -26,7 +24,6 @@ private:
 	void write(const std::string &str);
 
 private:
-	std::ostream &os;
-	uint32_t codePointsCount = 0;
+	std::ostringstream collectedVisibleText;
 
 };

@@ -10,6 +10,7 @@
 #include "numbering.h"
 #include "options.h"
 #include "util.h"
+#include "writer_output.h"
 
 namespace {
 
@@ -276,7 +277,8 @@ void ContentHandler::onStart(const XML_Char *name, const XML_Char **atts) {
 				::writeMarkup(context, ' ');
 			}
 
-			context.w.resetCodePointsCount();
+			if (Writer_Output *writerOutput = dynamic_cast<Writer_Output *>(&context.w))
+				writerOutput->resetCodePointsCount();
 
 			while (context.currentOutlineNumbering.size() > level) {
 				context.currentOutlineNumbering.pop_back();
@@ -461,7 +463,11 @@ void ContentHandler::onEnd(const XML_Char *name) {
 		}
 		if (context.underlineHeadingUsing != '\0') {
 			::writeMarkup(context, '\n');
-			::writeMarkup(context, std::string(context.w.getCodePointsCount() - 1, context.underlineHeadingUsing));
+
+			if (Writer_Output *writerOutput = dynamic_cast<Writer_Output *>(&context.w))
+				::writeMarkup(context, std::string(writerOutput->getCodePointsCount() - 1, context.underlineHeadingUsing));
+			else
+				::writeMarkup(context, std::string(10, context.underlineHeadingUsing));
 		}
 		::writeVisibleText(context, '\n');
 		::writeMarkup(context, '\n');
