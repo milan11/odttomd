@@ -5,6 +5,7 @@
 #include <sstream>
 #include <vector>
 #include <boost/scope_exit.hpp>
+#include "utf8/checked.h"
 #include <expat.h>
 #include "expat_utils.h"
 #include "numbering.h"
@@ -221,24 +222,28 @@ char hexDigit(const char digit) {
 std::string transformBookmarkText(const std::string &str) {
 	std::ostringstream result;
 
-	bool lastWasDash = false;
+	utf8::iterator<std::string::const_iterator> it(str.begin(), str.begin(), str.end());
+	utf8::iterator<std::string::const_iterator> end(str.end(), str.begin(), str.end());
 
-	for (const char &c : str) {
-		const bool isFirst128 = ((c & 0x80) == 0);
+	bool lastWasDash = false;
+	for (; it != end; ++it)
+	{
+		uint32_t codePoint = *it;
+		const bool isFirst128 = (codePoint < 128);
 
 		if (isFirst128) {
 			if (
-				((c >= 'a') && (c <= 'z'))
+				((codePoint >= 'a') && (codePoint <= 'z'))
 				||
-				((c >= '0') && (c <= '9'))
+				((codePoint >= '0') && (codePoint <= '9'))
 				||
-				(c == '_')
+				(codePoint == '_')
 			) {
-				result << c;
+				result << static_cast<char>(codePoint);
 				lastWasDash = false;
 			}
-			else if ((c >= 'A') && (c <= 'Z')) {
-				result << static_cast<char>(::tolower(c));
+			else if ((codePoint >= 'A') && (codePoint <= 'Z')) {
+				result << static_cast<char>(::tolower(static_cast<int>(codePoint)));
 				lastWasDash = false;
 			}
 			else {
@@ -248,7 +253,14 @@ std::string transformBookmarkText(const std::string &str) {
 				}
 			}
 		} else {
-			result << '%' << ::hexDigit((c < 0 ? c+ 256 : c) / 16) << ::hexDigit((c < 0 ? c+ 256 : c) % 16);
+			std::string characterBytes;
+
+			utf8::append(codePoint, std::back_inserter(characterBytes));
+
+			for (const char c : characterBytes) {
+				result << '%' << ::hexDigit((c < 0 ? c+ 256 : c) / 16) << ::hexDigit((c < 0 ? c+ 256 : c) % 16);
+			}
+
 			lastWasDash = false;
 		}
 	}
