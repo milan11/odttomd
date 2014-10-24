@@ -230,8 +230,9 @@ std::string transformBookmarkText(const std::string &str) {
 	{
 		uint32_t codePoint = *it;
 		const bool isFirst128 = (codePoint < 128);
+		const bool isPunctuation = (codePoint >= 0x2000 && codePoint <= 0x206F);
 
-		if (isFirst128) {
+		if (isFirst128 || isPunctuation) {
 			if (
 				((codePoint >= 'a') && (codePoint <= 'z'))
 				||

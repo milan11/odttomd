@@ -40,7 +40,7 @@ References:
 
 [1.1&lt;a&gt;](\#a\-numbered\-with\-prefix\-and\-suffix) [Numbered with prefix and suffix](\#a\-numbered\-with\-prefix\-and\-suffix)
 
-[](\#a1%C3%A1%C5%BE%C4%BEa%C6%89%D8%87%DA%A5%E0%AE%87%C5%A1%C4%BE\_\-%E2%80%9C) [a1ážľaƉ؇ڥஇšľ\_.:;\!?~\+\-\*\\/@\#$%^&\(\)\[\]\{\}&lt;&gt;'“](\#a1%C3%A1%C5%BE%C4%BEa%C6%89%D8%87%DA%A5%E0%AE%87%C5%A1%C4%BE\_\-%E2%80%9C)
+[](\#a1%C3%A1%C5%BE%C4%BEa%C6%89%D8%87%DA%A5%E0%AE%87%C5%A1%C4%BE\_\-) [a1ážľaƉ؇ڥஇšľ\_.:;\!?~\+\-\*\\/@\#$%^&\(\)\[\]\{\}&lt;&gt;'“](\#a1%C3%A1%C5%BE%C4%BEa%C6%89%D8%87%DA%A5%E0%AE%87%C5%A1%C4%BE\_\-)
 
 [](\#same) [same](\#same)
 
@@ -50,5 +50,5 @@ References:
 
 [](\#long\-with\-spaces\-abcdefghijklmnopqrstuvwxyz\-abcdefghijklmnopqrstuvwxyz\-abcdefghijklmnopqrstuvwxyz\-abcdefghijklmnopqrstuvwxyz\-abcdefghijklmnopqrstuvwxyz)[long with spaces: abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz](\#long\-with\-spaces\-abcdefghijklmnopqrstuvwxyz\-abcdefghijklmnopqrstuvwxyz\-abcdefghijklmnopqrstuvwxyz\-abcdefghijklmnopqrstuvwxyz\-abcdefghijklmnopqrstuvwxyz)
 
-[](\#abc\-def%E2%80%94ghi\-jkl\-mno\_\-pqr\-stu)[abc\-def—ghi\-.jkl.\-mno\_\-pqr:\-stu](\#abc\-def%E2%80%94ghi\-jkl\-mno\_\-pqr\-stu)
+[](\#abc\-def\-ghi\-jkl\-mno\_\-pqr\-stu)[abc\-def—ghi\-.jkl.\-mno\_\-pqr:\-stu](\#abc\-def\-ghi\-jkl\-mno\_\-pqr\-stu)
 
