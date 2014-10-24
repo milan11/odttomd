@@ -23,13 +23,6 @@ void main_inner(const std::string &inputFile, const std::string &profile) {
 		::zip_close(z);
 	} BOOST_SCOPE_EXIT_END
 
-	StructureContext structureContext;
-	{
-		Handlers handlers;
-		handlers.push_back(std::make_shared<StructureHandler>(structureContext));
-		::processXmlInZip(z, "content.xml", handlers);
-	}
-
 	StylesContext stylesContext;
 	{
 		Handlers handlers;
@@ -37,12 +30,22 @@ void main_inner(const std::string &inputFile, const std::string &profile) {
 		::processXmlInZip(z, "styles.xml", handlers);
 	}
 
+	StructureContext structureContext;
+	{
+		Handlers handlers;
+
+		ContentContext contentContext(structureContext.visibleTextCollecting);
+		handlers.push_back(std::make_shared<StructureHandler>(structureContext));
+		handlers.push_back(std::make_shared<StylesHandler>(stylesContext));
+		handlers.push_back(std::make_shared<ContentHandler>(structureContext.structure, stylesContext.styles, contentContext));
+		::processXmlInZip(z, "content.xml", handlers);
+	}
+
 	Writer_Output output(std::cout);
 	ContentContext contentContext(output);
 	{
 		Handlers handlers;
 		handlers.push_back(std::make_shared<ContentHandler>(structureContext.structure, stylesContext.styles, contentContext));
-		handlers.push_back(std::make_shared<StylesHandler>(stylesContext));
 		::processXmlInZip(z, "content.xml", handlers);
 	}
 }

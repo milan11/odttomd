@@ -3,6 +3,7 @@
 #include <map>
 #include <string>
 #include <set>
+#include "writer_collecting.h"
 #include "xmlInZip.h"
 
 class Structure {
@@ -19,7 +20,7 @@ public:
 	Structure structure;
 
 	std::set<std::string> currentBookmarkNames;
-
+	Writer_Collecting visibleTextCollecting;
 };
 
 class StructureHandler : public ExpatXmlHandler {

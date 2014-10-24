@@ -14,6 +14,16 @@ void StructureHandler::onStart(const XML_Char *name, const XML_Char **atts) {
 	bool bookmarkEnd = (! ::strcmp(name, "text:bookmark-end"));
 
 	if (bookmarkStart || bookmarkEnd) {
+		{
+			const std::string collectedText = context.visibleTextCollecting.getCollectedVisibleText();
+
+			for (const std::string &bookmarkName : context.currentBookmarkNames) {
+				context.structure.bookmarks[bookmarkName] += collectedText;
+			}
+
+			context.visibleTextCollecting.resetCollectedVisibleText();
+		}
+
 		const std::string bookmarkName = ::attrString(atts, "text:name", "");
 		if (! bookmarkName.empty()) {
 			if (bookmarkStart) {
@@ -28,12 +38,10 @@ void StructureHandler::onStart(const XML_Char *name, const XML_Char **atts) {
 	}
 }
 
-void StructureHandler::onEnd(const XML_Char *name) {
+void StructureHandler::onEnd(const XML_Char *) {
 
 }
 
-void StructureHandler::onData(const XML_Char *s, int len) {
-	for (const std::string &bookmarkName : context.currentBookmarkNames) {
-		context.structure.bookmarks[bookmarkName] += std::string(s, static_cast<size_t>(len));
-	}
+void StructureHandler::onData(const XML_Char *, int) {
+
 }

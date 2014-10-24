@@ -14,8 +14,9 @@ namespace {
 	void onEnd(void *userData, const XML_Char *name) {
 		const Handlers *handlers = static_cast<const Handlers *>(userData);
 
-		for (const std::shared_ptr<ExpatXmlHandler> &handler : *handlers) {
-			handler->onEnd(name);
+		for (Handlers::const_reverse_iterator it = handlers->rbegin(); it != handlers->rend(); ++it)
+		{
+			(*it)->onEnd(name);
 		}
 	}
 
