@@ -21,19 +21,9 @@ void Writer_Output::writeMarkup(const char c)
 	write(c);
 }
 
-void Writer_Output::writeMarkup(const std::string &str)
-{
-	write(str);
-}
-
 void Writer_Output::writeVisibleText(const char c)
 {
 	write(c);
-}
-
-void Writer_Output::writeVisibleText(const std::string &str)
-{
-	write(str);
 }
 
 void Writer_Output::writeVisibleText_escaped(const char c)
@@ -65,13 +55,6 @@ void Writer_Output::writeVisibleText_escaped(const char c)
 	}
 	else {
 		write(c);
-	}
-}
-
-void Writer_Output::writeVisibleText_escaped(const std::string &str)
-{
-	for (const char c : str) {
-		writeVisibleText_escaped(c);
 	}
 }
 

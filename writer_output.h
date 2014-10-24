@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iosfwd>
+#include <string>
 #include "writer.h"
 
 class Writer_Output : public Writer {
@@ -13,13 +14,8 @@ public:
 
 public:
 	virtual void writeMarkup(const char c) override;
-	virtual void writeMarkup(const std::string &str) override;
-
 	virtual void writeVisibleText(const char c) override;
-	virtual void writeVisibleText(const std::string &str) override;
-
 	virtual void writeVisibleText_escaped(const char c) override;
-	virtual void writeVisibleText_escaped(const std::string &str) override;
 
 private:
 	void write(const char c);

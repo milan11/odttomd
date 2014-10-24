@@ -15,7 +15,8 @@
 namespace {
 
 void writeRemainingSpaces(ContentContext &context) {
-	context.w.writeVisibleText_escaped(std::string(context.remainingSpacesCount, ' '));
+	for (uint32_t i = 0; i < context.remainingSpacesCount; ++i)
+		context.w.writeVisibleText_escaped(' ');
 
 	if (context.remainingSpacesCount > 0) {
 		context.lastWasStyleEnd = false;
@@ -51,18 +52,20 @@ void writeStyleDiff(ContentContext &context, const Style &oldStyle, const Style 
 
 	if (disablingItalic) {
 		if ((context.outerIsItalic) && (inBold || disablingBold)) {
-			context.w.writeMarkup("**");
+			context.w.writeMarkup('*');
+			context.w.writeMarkup('*');
 			disablingBold = false;
 		}
 
-		context.w.writeMarkup("_");
+		context.w.writeMarkup('_');
 		context.lastWasStyleEnd = true;
 
 		if ((context.outerIsItalic) && (inBold)) {
 			::writeRemainingSpaces(context);
 			::writeSpaceBeforeStyleIfNeeded(context);
 
-			context.w.writeMarkup("**");
+			context.w.writeMarkup('*');
+			context.w.writeMarkup('*');
 			context.lastWasStyleEnd = false;
 
 			context.outerIsItalic = false;
@@ -71,17 +74,18 @@ void writeStyleDiff(ContentContext &context, const Style &oldStyle, const Style 
 
 	if (disablingBold) {
 		if ((! context.outerIsItalic) && (inItalic)) {
-			context.w.writeMarkup("_");
+			context.w.writeMarkup('_');
 		}
 
-		context.w.writeMarkup("**");
+		context.w.writeMarkup('*');
+		context.w.writeMarkup('*');
 		context.lastWasStyleEnd = true;
 
 		if ((! context.outerIsItalic) && (inItalic)) {
 			::writeRemainingSpaces(context);
 			::writeSpaceBeforeStyleIfNeeded(context);
 
-			context.w.writeMarkup("_");
+			context.w.writeMarkup('_');
 			context.lastWasStyleEnd = false;
 
 			context.outerIsItalic = true;
@@ -95,7 +99,8 @@ void writeStyleDiff(ContentContext &context, const Style &oldStyle, const Style 
 		::writeRemainingSpaces(context);
 		::writeSpaceBeforeStyleIfNeeded(context);
 
-		context.w.writeMarkup("**");
+		context.w.writeMarkup('*');
+		context.w.writeMarkup('*');
 		context.lastWasStyleEnd = false;
 	}
 
@@ -106,7 +111,7 @@ void writeStyleDiff(ContentContext &context, const Style &oldStyle, const Style 
 		::writeRemainingSpaces(context);
 		::writeSpaceBeforeStyleIfNeeded(context);
 
-		context.w.writeMarkup("_");
+		context.w.writeMarkup('_');
 		context.lastWasStyleEnd = false;
 	}
 }
