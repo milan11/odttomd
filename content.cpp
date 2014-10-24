@@ -242,7 +242,7 @@ std::string transformBookmarkText(const std::string &str) {
 				lastWasDash = false;
 			}
 			else {
-				if (! lastWasDash) {
+				if (! lastWasDash && (result.tellp() > 0)) {
 					result << '-';
 					lastWasDash = true;
 				}

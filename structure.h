@@ -21,6 +21,7 @@ public:
 
 	std::set<std::string> currentBookmarkNames;
 	Writer_Collecting visibleTextCollecting;
+	bool textIsFromPreviousH = false;
 };
 
 class StructureHandler : public ExpatXmlHandler {
@@ -31,6 +32,9 @@ public:
 	void onStart(const XML_Char *name, const XML_Char **atts) override;
 	void onEnd(const XML_Char *name) override;
 	void onData(const XML_Char *s, int len) override;
+
+private:
+	void flushCollectedTextToBookmarks();
 
 private:
 	StructureContext &context;

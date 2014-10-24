@@ -14,34 +14,48 @@ void StructureHandler::onStart(const XML_Char *name, const XML_Char **atts) {
 	bool bookmarkEnd = (! ::strcmp(name, "text:bookmark-end"));
 
 	if (bookmarkStart || bookmarkEnd) {
-		{
-			const std::string collectedText = context.visibleTextCollecting.getCollectedVisibleText();
-
-			for (const std::string &bookmarkName : context.currentBookmarkNames) {
-				context.structure.bookmarks[bookmarkName] += collectedText;
-			}
-
-			context.visibleTextCollecting.resetCollectedVisibleText();
-		}
-
 		const std::string bookmarkName = ::attrString(atts, "text:name", "");
 		if (! bookmarkName.empty()) {
 			if (bookmarkStart) {
+				if (!context.textIsFromPreviousH) flushCollectedTextToBookmarks();
 				context.currentBookmarkNames.insert(bookmarkName);
+				if (context.textIsFromPreviousH) flushCollectedTextToBookmarks();
 			}
 			if (bookmarkEnd) {
+				flushCollectedTextToBookmarks();
 				context.currentBookmarkNames.erase(bookmarkName);
 			}
 		} else {
 			std::cerr << "Empty bookmark name" << std::endl;
 		}
 	}
+	else if (! ::strcmp(name, "text:h")) {
+		flushCollectedTextToBookmarks();
+		context.textIsFromPreviousH = true;
+	}
+	else
+	{
+		context.textIsFromPreviousH = false;
+	}
 }
 
 void StructureHandler::onEnd(const XML_Char *) {
-
+	context.textIsFromPreviousH = false;
 }
 
 void StructureHandler::onData(const XML_Char *, int) {
 
+}
+
+void StructureHandler::flushCollectedTextToBookmarks()
+{
+	const std::string collectedText = context.visibleTextCollecting.getCollectedVisibleText();
+
+	for (const std::string &bookmarkName : context.currentBookmarkNames) {
+		context.structure.bookmarks[bookmarkName] += collectedText;
+	}
+
+	context.visibleTextCollecting.resetCollectedVisibleText();
+
+	context.textIsFromPreviousH = false;
 }
