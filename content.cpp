@@ -14,7 +14,7 @@
 namespace {
 
 void writeRemainingSpaces(ContentContext &context) {
-	context.w.write(std::string(context.remainingSpacesCount, ' '));
+	context.w.writeVisibleText_escaped(std::string(context.remainingSpacesCount, ' '));
 
 	if (context.remainingSpacesCount > 0) {
 		context.lastWasStyleEnd = false;
@@ -25,7 +25,7 @@ void writeRemainingSpaces(ContentContext &context) {
 
 void writeSpaceBeforeStyleIfNeeded(ContentContext &context) {
 	if ((! options().boldItalicBeginInsideOfWords) && (! context.lastWasWhitespace)) {
-		context.w.write(' ');
+		context.w.writeVisibleText_escaped(' ');
 		context.lastWasWhitespace = true;
 	}
 }
@@ -33,7 +33,7 @@ void writeSpaceBeforeStyleIfNeeded(ContentContext &context) {
 void writeSpaceAfterStyleIfNeeded(ContentContext &context, const char currentChar) {
 	if ((! options().boldItalicEndInsideOfWords) && (context.lastWasStyleEnd)) {
 		if (currentChar != ' ' && currentChar != '\n')
-			context.w.write(' ');
+			context.w.writeVisibleText_escaped(' ');
 	}
 
 	context.lastWasStyleEnd = false;
@@ -50,18 +50,18 @@ void writeStyleDiff(ContentContext &context, const Style &oldStyle, const Style 
 
 	if (disablingItalic) {
 		if ((context.outerIsItalic) && (inBold || disablingBold)) {
-			context.w.write("**");
+			context.w.writeMarkup("**");
 			disablingBold = false;
 		}
 
-		context.w.write("_");
+		context.w.writeMarkup("_");
 		context.lastWasStyleEnd = true;
 
 		if ((context.outerIsItalic) && (inBold)) {
 			::writeRemainingSpaces(context);
 			::writeSpaceBeforeStyleIfNeeded(context);
 
-			context.w.write("**");
+			context.w.writeMarkup("**");
 			context.lastWasStyleEnd = false;
 
 			context.outerIsItalic = false;
@@ -70,17 +70,17 @@ void writeStyleDiff(ContentContext &context, const Style &oldStyle, const Style 
 
 	if (disablingBold) {
 		if ((! context.outerIsItalic) && (inItalic)) {
-			context.w.write("_");
+			context.w.writeMarkup("_");
 		}
 
-		context.w.write("**");
+		context.w.writeMarkup("**");
 		context.lastWasStyleEnd = true;
 
 		if ((! context.outerIsItalic) && (inItalic)) {
 			::writeRemainingSpaces(context);
 			::writeSpaceBeforeStyleIfNeeded(context);
 
-			context.w.write("_");
+			context.w.writeMarkup("_");
 			context.lastWasStyleEnd = false;
 
 			context.outerIsItalic = true;
@@ -94,7 +94,7 @@ void writeStyleDiff(ContentContext &context, const Style &oldStyle, const Style 
 		::writeRemainingSpaces(context);
 		::writeSpaceBeforeStyleIfNeeded(context);
 
-		context.w.write("**");
+		context.w.writeMarkup("**");
 		context.lastWasStyleEnd = false;
 	}
 
@@ -105,7 +105,7 @@ void writeStyleDiff(ContentContext &context, const Style &oldStyle, const Style 
 		::writeRemainingSpaces(context);
 		::writeSpaceBeforeStyleIfNeeded(context);
 
-		context.w.write("_");
+		context.w.writeMarkup("_");
 		context.lastWasStyleEnd = false;
 	}
 }
@@ -119,7 +119,41 @@ void setLastWasWhitespace(ContentContext &context, const char c) {
 	context.lastWasWhitespace = (c == ' ' || c == '\n');
 }
 
-void writeEscaped(ContentContext &context, const char c) {
+void writeMarkup(ContentContext &context, const char c) {
+	ensureStyleApplied(context);
+
+	::writeRemainingSpaces(context);
+	::writeSpaceAfterStyleIfNeeded(context, c);
+
+	context.w.writeMarkup(c);
+
+	::setLastWasWhitespace(context, c);
+}
+
+void writeMarkup(ContentContext &context, const std::string &str) {
+	for (const char &c : str) {
+		::writeMarkup(context, c);
+	}
+}
+
+void writeVisibleText(ContentContext &context, const char c) {
+	ensureStyleApplied(context);
+
+	::writeRemainingSpaces(context);
+	::writeSpaceAfterStyleIfNeeded(context, c);
+
+	context.w.writeVisibleText(c);
+
+	::setLastWasWhitespace(context, c);
+}
+
+void writeVisibleText(ContentContext &context, const std::string &str) {
+	for (const char &c : str) {
+		::writeVisibleText(context, c);
+	}
+}
+
+void writeVisibleText_escaped(ContentContext &context, const char c) {
 	if ((c == ' ') && (! options().edgeSpacesInsideBoldItalic)) {
 		++(context.remainingSpacesCount);
 	} else {
@@ -128,59 +162,15 @@ void writeEscaped(ContentContext &context, const char c) {
 		::writeRemainingSpaces(context);
 		::writeSpaceAfterStyleIfNeeded(context, c);
 
-		if (options().escapeInText.find(c) != std::string::npos) {
-			context.w.write('\\');
-			context.w.write(c);
-		}
-		else if (options().entitiesInText.find(c) != std::string::npos) {
-			switch (c) {
-				case '<':
-					context.w.write("&lt;");
-					break;
-				case '>':
-					context.w.write("&gt;");
-					break;
-				case '"':
-					context.w.write("&quot;");
-					break;
-				case '&':
-					context.w.write("&amp;");
-					break;
-				case '\'':
-					context.w.write("&apos;");
-					break;
-				default:
-					context.w.write(c);
-			}
-		}
-		else {
-			context.w.write(c);
-		}
+		context.w.writeVisibleText_escaped(c);
 	}
 
 	::setLastWasWhitespace(context, c);
 }
 
-void writeEscaped(ContentContext &context, const std::string &str) {
+void writeVisibleText_escaped(ContentContext &context, const std::string &str) {
 	for (const char &c : str) {
-		::writeEscaped(context, c);
-	}
-}
-
-void writeRaw(ContentContext &context, const char c) {
-	ensureStyleApplied(context);
-
-	::writeRemainingSpaces(context);
-	::writeSpaceAfterStyleIfNeeded(context, c);
-
-	context.w.write(c);
-
-	::setLastWasWhitespace(context, c);
-}
-
-void writeRaw(ContentContext &context, const std::string &str) {
-	for (const char &c : str) {
-		::writeRaw(context, c);
+		::writeVisibleText_escaped(context, c);
 	}
 }
 
@@ -282,8 +272,8 @@ void ContentHandler::onStart(const XML_Char *name, const XML_Char **atts) {
 			}
 
 			if (context.underlineHeadingUsing == '\0') {
-				::writeRaw(context, std::string(level, '#'));
-				::writeRaw(context, ' ');
+				::writeMarkup(context, std::string(level, '#'));
+				::writeMarkup(context, ' ');
 			}
 
 			context.w.resetCodePointsCount();
@@ -319,36 +309,36 @@ void ContentHandler::onStart(const XML_Char *name, const XML_Char **atts) {
 					::pushStyle(context, styles.getMergedStyle(outlineLevelStyle.styleName));
 				}
 
-				::writeEscaped(context, outlineLevelStyle.prefix);
+				::writeVisibleText_escaped(context, outlineLevelStyle.prefix);
 
 				for (uint32_t higherLevel = fromLevel; higherLevel < level; ++higherLevel) {
 					OutlineLevelStyle higherLevelStyle = styles.getOutlineLevelStyle(higherLevel);
 					::fixOutlineLevelStyleForMarkdown(higherLevelStyle, options().headingNumberFormats, options().headingNumbersStartValue, options().headingNumbersLevels);
 					if (! higherLevelStyle.numFormat.empty()) {
 						const std::string numberText = numbering::createNumber(context.currentOutlineNumbering[higherLevel - 1], higherLevelStyle.numFormat, higherLevelStyle.numLetterSync);
-						::writeEscaped(context, numberText);
+						::writeVisibleText_escaped(context, numberText);
 
 						if (! options().escapeDotInHeadingNumbers)
-							::writeRaw(context, '.');
+							::writeVisibleText(context, '.');
 						else
-							::writeEscaped(context, '.');
+							::writeVisibleText_escaped(context, '.');
 					}
 				}
 				if (! outlineLevelStyle.numFormat.empty()) {
 					const std::string numberText = numbering::createNumber(currentNumber, outlineLevelStyle.numFormat, outlineLevelStyle.numLetterSync);
-					::writeEscaped(context, numberText);
+					::writeVisibleText_escaped(context, numberText);
 				}
 
 				if ((! options().escapeDotInHeadingNumbers) && outlineLevelStyle.suffix == ".")
-					::writeRaw(context, '.');
+					::writeVisibleText(context, '.');
 				else
-					::writeEscaped(context, outlineLevelStyle.suffix);
+					::writeVisibleText_escaped(context, outlineLevelStyle.suffix);
 
 				if (options().stylesInHeadingNumbers && (! outlineLevelStyle.styleName.empty())) {
 					::popStyle(context);
 				}
 
-				::writeRaw(context, ' ');
+				::writeVisibleText(context, ' ');
 			}
 		}
 	}
@@ -359,7 +349,8 @@ void ContentHandler::onStart(const XML_Char *name, const XML_Char **atts) {
 		::pushStyle(context, styles.getMergedStyle(::attrString(atts, "text:style-name", "")));
 	}
 	if (! ::strcmp(name, "text:line-break")) {
-		::writeRaw(context, "  \n");
+		::writeMarkup(context, "  ");
+		::writeVisibleText(context, '\n');
 	}
 	if (! ::strcmp(name, "text:list")) {
 		std::string listStyleName = ::attrString(atts, "text:style-name", "");
@@ -385,7 +376,7 @@ void ContentHandler::onStart(const XML_Char *name, const XML_Char **atts) {
 	if (! ::strcmp(name, "text:list-item")) {
 		uint32_t level = static_cast<uint32_t>(context.currentLists.top().currentNumbering.size());
 
-		::writeRaw(context, std::string((level - 1) * 2, ' '));
+		::writeMarkup(context, std::string((level - 1) * 2, ' '));
 
 		if (styles.getListStyle(context.currentLists.top().listStyleName).isNumbered(level)) {
 			OutlineLevelStyle outlineLevelStyle = styles.getListStyle(context.currentLists.top().listStyleName).getOutlineLevelStyle(level);
@@ -404,43 +395,43 @@ void ContentHandler::onStart(const XML_Char *name, const XML_Char **atts) {
 				::pushStyle(context, styles.getMergedStyle(outlineLevelStyle.styleName));
 			}
 
-			::writeEscaped(context, outlineLevelStyle.prefix);
+			::writeVisibleText_escaped(context, outlineLevelStyle.prefix);
 
 			for (uint32_t higherLevel = fromLevel; higherLevel < level; ++higherLevel) {
 				OutlineLevelStyle higherLevelStyle = styles.getListStyle(context.currentLists.top().listStyleName).getOutlineLevelStyle(higherLevel);
 				::fixOutlineLevelStyleForMarkdown(higherLevelStyle, options().listNumberFormats, options().listNumbersStartValue, options().listNumbersLevels);
 
 				if (! higherLevelStyle.numFormat.empty()) {
-					::writeEscaped(context, numbering::createNumber(context.currentLists.top().currentNumbering[higherLevel - 1], higherLevelStyle.numFormat, higherLevelStyle.numLetterSync));
+					::writeVisibleText_escaped(context, numbering::createNumber(context.currentLists.top().currentNumbering[higherLevel - 1], higherLevelStyle.numFormat, higherLevelStyle.numLetterSync));
 
 					if (! options().escapeDotInListNumbers)
-						::writeRaw(context, '.');
+						::writeVisibleText(context, '.');
 					else
-						::writeEscaped(context, '.');
+						::writeVisibleText_escaped(context, '.');
 				}
 			}
 			if (! outlineLevelStyle.numFormat.empty()) {
-				::writeEscaped(context, numbering::createNumber(currentNumber, outlineLevelStyle.numFormat, outlineLevelStyle.numLetterSync));
+				::writeVisibleText_escaped(context, numbering::createNumber(currentNumber, outlineLevelStyle.numFormat, outlineLevelStyle.numLetterSync));
 			}
 
 			if ((! options().escapeDotInListNumbers) && outlineLevelStyle.suffix == ".")
-				::writeRaw(context, '.');
+				::writeVisibleText(context, '.');
 			else
-				::writeEscaped(context, outlineLevelStyle.suffix);
+				::writeVisibleText_escaped(context, outlineLevelStyle.suffix);
 
 			if (options().stylesInListNumbers && (! outlineLevelStyle.styleName.empty())) {
 				::popStyle(context);
 			}
 		} else {
-			::writeRaw(context, (level % 2) ? '*' : '-');
+			::writeMarkup(context, (level % 2) ? '*' : '-');
 		}
 
-		::writeRaw(context, ' ');
+		::writeVisibleText(context, ' ');
 	}
 
 	if (! ::strcmp(name, "text:a")) {
 		context.currentUrl = ::attrString(atts, "xlink:href", "");
-		::writeRaw(context, '[');
+		::writeMarkup(context, '[');
 	}
 	if (! ::strcmp(name, "text:bookmark-ref")) {
 		if (options().linksToHeadings) {
@@ -449,7 +440,7 @@ void ContentHandler::onStart(const XML_Char *name, const XML_Char **atts) {
 				const Structure::NameToText::const_iterator it = structure.bookmarks.find(bookmarkName);
 				if (it != structure.bookmarks.end()) {
 					context.currentUrl = '#' + ::transformBookmarkText(it->second);
-					::writeRaw(context, '[');
+					::writeMarkup(context, '[');
 				} else {
 					std::cerr << "Bookmark not found: " << bookmarkName << std::endl;
 				}
@@ -464,24 +455,24 @@ void ContentHandler::onEnd(const XML_Char *name) {
 			if (options().closeHeadings || options().closeHeadingsShort) {
 				const uint32_t level = context.currentHeadingOutlineLevel;
 
-				::writeRaw(context, ' ');
-				::writeRaw(context, std::string(options().closeHeadingsShort ? 1 : level, '#'));
+				::writeMarkup(context, ' ');
+				::writeMarkup(context, std::string(options().closeHeadingsShort ? 1 : level, '#'));
 			}
 		}
 		if (context.underlineHeadingUsing != '\0') {
-			::writeRaw(context, '\n');
-			::writeRaw(context, std::string(context.w.getCodePointsCount() - 1, context.underlineHeadingUsing));
+			::writeMarkup(context, '\n');
+			::writeMarkup(context, std::string(context.w.getCodePointsCount() - 1, context.underlineHeadingUsing));
 		}
-		::writeRaw(context, '\n');
-		::writeRaw(context, '\n');
+		::writeVisibleText(context, '\n');
+		::writeMarkup(context, '\n');
 	}
 	if (! ::strcmp(name, "text:p")) {
 		::popStyle(context);
 
-		::writeRaw(context, '\n');
+		::writeVisibleText(context, '\n');
 
 		if (context.currentLists.size() == 0)
-			::writeRaw(context, '\n');
+			::writeMarkup(context, '\n');
 	}
 	if (! ::strcmp(name, "text:span")) {
 		::popStyle(context);
@@ -494,17 +485,17 @@ void ContentHandler::onEnd(const XML_Char *name) {
 		}
 
 		if (context.currentLists.size() == 0)
-			::writeRaw(context, '\n');
+			::writeMarkup(context, '\n');
 	}
 	if (! ::strcmp(name, "text:list-item")) {
 		++context.currentLists.top().currentNumbering.back();
 	}
 	if ((! ::strcmp(name, "text:a")) || (! ::strcmp(name, "text:bookmark-ref"))) {
 		if (! context.currentUrl.empty()) {
-			::writeRaw(context, ']');
-			::writeRaw(context, '(');
-			::writeEscaped(context, context.currentUrl);
-			::writeRaw(context, ')');
+			::writeMarkup(context, ']');
+			::writeMarkup(context, '(');
+			::writeVisibleText_escaped(context, context.currentUrl);
+			::writeMarkup(context, ')');
 
 			context.currentUrl = "";
 		}
@@ -513,6 +504,6 @@ void ContentHandler::onEnd(const XML_Char *name) {
 
 void ContentHandler::onData(const XML_Char *s, int len) {
 	for (const XML_Char *c = s; c < s + len; ++c) {
-		::writeEscaped(context, *c);
+		::writeVisibleText_escaped(context, *c);
 	}
 }
