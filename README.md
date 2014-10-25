@@ -33,6 +33,8 @@ Build
   - boost
   - expat
   - libzip
+* **used libraries included in the project \(not build dependencies\):**
+  - [UTF8\-CPP](http://utfcpp.sourceforge.net/)
 * **build steps:**
   - git clone git@github.com:milan11/odttomd.git
   - cd odttomd
