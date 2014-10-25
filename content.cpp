@@ -232,7 +232,10 @@ std::string transformBookmarkText(const std::string &str) {
 		const bool isFirst128 = (codePoint < 128);
 		const bool isPunctuation = (codePoint >= 0x2000 && codePoint <= 0x206F);
 
-		if (isFirst128 || isPunctuation) {
+		if (codePoint == '.' || codePoint == 8212 || codePoint == 1543) {
+			// ignore
+		}
+		else if (isFirst128 || isPunctuation) {
 			if (
 				((codePoint >= 'a') && (codePoint <= 'z'))
 				||
@@ -253,7 +256,8 @@ std::string transformBookmarkText(const std::string &str) {
 					lastWasDash = true;
 				}
 			}
-		} else {
+		}
+		else {
 			std::string characterBytes;
 
 			utf8::append(codePoint, std::back_inserter(characterBytes));
