@@ -9,7 +9,11 @@
 class Structure {
 
 public:
-	using NameToText = std::map<std::string, std::string>;
+	void appendText(const std::string &bookmarkName, const std::string &text);
+	std::string findText(const std::string &bookmarkName) const;
+
+public:
+	using NameToText = std::vector<std::pair<std::string, std::string>>;
 	NameToText bookmarks;
 
 };

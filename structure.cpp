@@ -4,6 +4,56 @@
 #include <iostream>
 #include "expat_utils.h"
 
+void Structure::appendText(const std::string &bookmarkName, const std::string &text)
+{
+	for (NameToText::iterator it = bookmarks.begin(); it != bookmarks.end(); ++it)
+	{
+		if (it->first == bookmarkName)
+		{
+			it->second += text;
+			return;
+		}
+	}
+
+	throw "Invalid bookmark name: " + bookmarkName;
+}
+
+std::string Structure::findText(const std::string &bookmarkName) const
+{
+	NameToText::const_iterator it_found = bookmarks.end();
+	for (NameToText::const_iterator it = bookmarks.begin(); it != bookmarks.end(); ++it)
+	{
+		if (it->first == bookmarkName)
+		{
+			it_found = it;
+			break;
+		}
+	}
+
+	if (it_found == bookmarks.end())
+	{
+		std::cerr << "Bookmark not found: " << bookmarkName << std::endl;
+		return "";
+	}
+
+	uint32_t equalTextBeforeCount = 0;
+	for (NameToText::const_iterator it = bookmarks.begin(); it != it_found; ++it)
+	{
+		if (it->second == it_found->second)
+		{
+			++equalTextBeforeCount;
+		}
+	}
+
+	std::string bookmarkText = it_found->second;
+	if (equalTextBeforeCount > 0)
+	{
+		bookmarkText += '-' + std::to_string(equalTextBeforeCount);
+	}
+
+	return bookmarkText;
+}
+
 StructureHandler::StructureHandler(StructureContext &context)
 	: context(context)
 {
@@ -19,6 +69,7 @@ void StructureHandler::onStart(const XML_Char *name, const XML_Char **atts) {
 			if (bookmarkStart) {
 				if (!context.textIsFromPreviousH) flushCollectedTextToBookmarks();
 				context.currentBookmarkNames.insert(bookmarkName);
+				context.structure.bookmarks.push_back(std::make_pair(bookmarkName, ""));
 				if (context.textIsFromPreviousH) flushCollectedTextToBookmarks();
 			}
 			if (bookmarkEnd) {
@@ -52,7 +103,7 @@ void StructureHandler::flushCollectedTextToBookmarks()
 	const std::string collectedText = context.visibleTextCollecting.getCollectedVisibleText();
 
 	for (const std::string &bookmarkName : context.currentBookmarkNames) {
-		context.structure.bookmarks[bookmarkName] += collectedText;
+		context.structure.appendText(bookmarkName, collectedText);
 	}
 
 	context.visibleTextCollecting.resetCollectedVisibleText();

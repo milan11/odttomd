@@ -461,12 +461,11 @@ void ContentHandler::onStart(const XML_Char *name, const XML_Char **atts) {
 		if (options().linksToHeadings) {
 			const std::string bookmarkName = ::attrString(atts, "text:ref-name", "");
 			if (! bookmarkName.empty()) {
-				const Structure::NameToText::const_iterator it = structure.bookmarks.find(bookmarkName);
-				if (it != structure.bookmarks.end()) {
-					context.currentUrl = '#' + ::transformBookmarkText(it->second);
+				std::string bookmarkText = structure.findText(bookmarkName);
+
+				if (! bookmarkText.empty()) {
+					context.currentUrl = '#' + ::transformBookmarkText(bookmarkText);
 					::writeMarkup(context, '[');
-				} else {
-					std::cerr << "Bookmark not found: " << bookmarkName << std::endl;
 				}
 			}
 		}
